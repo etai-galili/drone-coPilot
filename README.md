@@ -57,6 +57,20 @@ Then open **http://127.0.0.1:7860** in your browser.
 
 ---
 
+## Standalone Tools (no setup, no server)
+
+Two self-contained HTML tools you can open directly in any browser — also work
+fully offline and on mobile (just double-click the file):
+
+| File | What it is |
+|------|------------|
+| `drone_explorer.html` | Interactive **2D drone model** of the DJI Avata — tap components (camera, battery, motors, ducts, sensors) to see specs and details |
+| `tree.html` | Interactive **diagnostic question tree** — step through symptoms to reach a recommended action |
+
+No Python, dependencies, or internet required for these two — open the file and use it.
+
+---
+
 ## Architecture
 
 ```
