@@ -1,0 +1,51 @@
+DJI AVATA 2 — SYSTEM FAMILIARIZATION
+
+OVERVIEW
+The DJI Avata 2 is a single-rotor-class FPV (First-Person View) cinewhoop drone designed for immersive flight, indoor and outdoor reconnaissance, and cinematic FPV capture. It is flown through DJI Goggles 3 with the DJI RC Motion 3 controller, or optionally the DJI FPV Remote Controller 3. The aircraft uses ducted propeller guards integrated into the airframe, making it safer to fly near people, indoors, and in confined spaces than open-prop FPV drones.
+
+The complete Avata 2 system has three core components:
+1. Aircraft (the drone itself, with camera, battery, ducts, and propulsion).
+2. DJI Goggles 3 — the head-mounted display that shows the live FPV feed.
+3. DJI RC Motion 3 — the motion controller used to steer the aircraft.
+
+KEY FACTS (VERIFIED)
+- Takeoff weight: approximately 377 g.
+- Dimensions: 185 x 212 x 64 mm (length x width x height).
+- Max flight time: approximately 23 minutes (forward flight at 21.6 km/h, windless, sea level); approximately 21 minutes hovering.
+- Camera: 1/1.3-inch CMOS sensor, 12 MP effective, 155 degree FOV, up to 4K/60fps video.
+- Video transmission: DJI O4, up to 13 km (FCC) / 10 km (CE), 24 ms latency, 60 Mbps bitrate.
+- Internal storage: 46 GB on board, plus microSD card support.
+- Battery: 2150 mAh, 14.76 V nominal, 31.7 Wh, LiPo 4S, approximately 145 g.
+
+WHAT IS IN THE BOX (FLY MORE COMBO TYPICAL CONTENTS)
+- Avata 2 aircraft.
+- DJI Goggles 3.
+- DJI RC Motion 3 controller.
+- One or three Intelligent Flight Batteries (depending on combo).
+- Two-Way Charging Hub (Fly More Combo).
+- Spare propellers.
+- Gimbal protector, screwdriver, USB-C cable, and lanyard.
+
+AIRCRAFT COMPONENTS (FRONT TO BACK)
+- Front: gimbal camera with single-axis mechanical stabilization plus electronic stabilization, protected by a removable gimbal guard.
+- Downward vision sensors and infrared sensing system on the underside for low-altitude positioning and landing.
+- Four ducted rotor assemblies (motor + propeller inside a guard) at each corner.
+- Top: power button with battery-level LEDs, status LED, and microSD card slot / USB-C port under a cover.
+- Intelligent Flight Battery inserted into the top bay.
+
+GOGGLES 3 FAMILIARIZATION
+- Provides a 1080p live FPV feed at up to 100 fps with low latency.
+- Built-in forward-facing cameras enable Real View PiP (see surroundings without removing the goggles).
+- Diopter adjustment for vision correction without glasses.
+- Touch bar on the side for menu navigation; head tracking is used for menu control.
+
+RC MOTION 3 FAMILIARIZATION
+- Motion-based control: tilt and move the controller to steer; the aircraft follows the controller's pointing direction.
+- Accelerator trigger to move forward/back, throttle, and a lock button for braking/hover.
+- Buttons for record/photo, mode switch, and Return-to-Home (RTH).
+
+INTENDED USE
+- FPV reconnaissance and inspection in indoor and confined environments (ducts make it safer near obstacles).
+- Cinematic FPV video capture.
+- Training and immersive flight.
+The Avata 2 is NOT a long-range mapping or heavy-payload platform; it carries no external payload bay and has no mechanical zoom.
