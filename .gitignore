@@ -1,0 +1,16 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+models/
+data/chroma_db/
+data/raw/
+data/chunks/
+config.json
+.DS_Store
+*.egg-info/
+dist/
+build/
+.env
