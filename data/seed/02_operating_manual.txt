@@ -1,0 +1,47 @@
+DJI AVATA 2 — OPERATING MANUAL (FLIGHT OPERATION)
+
+FLIGHT MODES
+The Avata 2 has three primary flight modes, selected from the goggles menu or the controller mode switch:
+
+1. Normal Mode (N) — uses GNSS and the downward vision/infrared positioning system. The aircraft holds position and altitude, brakes automatically when controls are released, and uses obstacle braking. Max horizontal speed 8 m/s. Recommended for beginners, indoor flight, and confined spaces.
+
+2. Sport Mode (S) — higher performance with positioning still active but reduced obstacle protection and faster response. Max horizontal speed 16 m/s. For experienced pilots in open areas.
+
+3. Manual Mode (M) — full FPV acro control with no auto-leveling and no obstacle braking. The aircraft holds attitude only as commanded. Max horizontal speed 27 m/s. Expert pilots only. Requires the DJI FPV Remote Controller 3 for true manual acro; RC Motion 3 is intended for Normal/Sport assisted flight.
+
+SPEED AND PERFORMANCE LIMITS (VERIFIED)
+- Max horizontal speed: 8 m/s (Normal), 16 m/s (Sport), 27 m/s (Manual).
+- Max ascent/descent speed: 6 m/s (Normal), 9 m/s (Sport).
+- Max takeoff altitude (service ceiling): 5000 m.
+- Max wind resistance: Level 5 (approximately 10.7 m/s).
+- Operating temperature range: -10 C to 40 C.
+
+TAKEOFF
+- Normal/Sport (RC Motion 3): with the aircraft on level ground and a GNSS or vision lock acquired, press the lock button or use the auto-takeoff command. The aircraft ascends to a hover at about 1.2 m.
+- Always confirm the status LED is solid (ready) and the goggles show "Ready to Go" before takeoff.
+
+LANDING
+- Reduce altitude over a flat, clear surface. Hold descent until the aircraft is low, then the vision/infrared system assists a soft touchdown.
+- The motors stop automatically on touchdown in Normal Mode, or hold the lock/throttle-down as required.
+
+INTELLIGENT FLIGHT FEATURES
+- Return-to-Home (RTH): the aircraft returns to the recorded Home Point and lands. Triggered manually (RTH button) or automatically on signal loss or critical battery.
+- Easy ACRO: simplified acrobatic maneuvers (front flip, back flip, 180 drift, roll) accessible to non-expert pilots using RC Motion 3.
+- Cruise Control: locks in a set forward speed so the pilot can release the trigger.
+- Turtle Mode: rights the aircraft if it lands upside down (open areas only; keep clear of the propellers).
+
+CONTROL LOGIC (RC MOTION 3)
+- Pull the accelerator trigger to move in the direction the controller points.
+- Tilt the controller to change heading and pitch.
+- Press the lock button to brake and hover instantly.
+- Push the throttle up/down for altitude.
+
+GOGGLES OPERATION
+- Power the goggles, then the aircraft; they link automatically if previously paired.
+- Use the touch bar and head movement to navigate menus.
+- Set RTH altitude, flight mode, and camera settings before flight.
+- Real View (PiP) lets the pilot view the real environment without removing the goggles.
+
+GEOFENCING AND REGULATIONS
+- The Avata 2 uses DJI GEO geofencing; restricted and authorization zones are enforced.
+- Operators must comply with local aviation regulations (registration, line-of-sight requirements where applicable, and a visual observer for FPV flight in many jurisdictions).

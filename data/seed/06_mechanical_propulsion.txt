@@ -1,0 +1,41 @@
+DJI AVATA 2 — MECHANICAL AND PROPULSION SYSTEM
+
+AIRFRAME
+- Integrated cinewhoop design with ducted propeller guards molded into the frame.
+- The ducts surround all four propellers, protecting them and bystanders and allowing safe operation near obstacles, indoors, and in confined spaces.
+- Compact dimensions: 185 x 212 x 64 mm; takeoff weight approximately 377 g.
+- Lightweight composite/plastic shell housing the flight controller, sensors, camera, and battery bay.
+
+PROPULSION
+- Four brushless motors, one per duct, in a quadrotor layout.
+- Quick-release propellers seated inside the ducts; each motor/propeller pair is matched to a rotation direction (CW/CCW) and must be installed in the correct position.
+- Propellers are a wear item: inspect before every flight and replace in matched sets.
+
+VISION AND SENSING HARDWARE
+- Downward binocular vision sensors plus an infrared sensing system for low-altitude positioning, hover stability, and assisted landing.
+- These support Normal Mode positioning and braking; the Avata 2 does not have forward/side obstacle sensors, so it relies on the ducts and pilot skill for horizontal obstacle protection.
+
+GIMBAL MECHANISM
+- Single-axis mechanical tilt gimbal carrying the camera, supplemented by electronic stabilization.
+- A removable gimbal guard protects the camera during transport and handling; it must be removed before flight.
+
+PROPELLER REPLACEMENT PROCEDURE
+1. Power off the aircraft and remove the battery.
+2. Identify the propeller position and its rotation marking.
+3. Use the included screwdriver to remove the retaining screw.
+4. Lift out the damaged propeller and seat the matching replacement (correct rotation for that arm).
+5. Tighten the screw firmly but do not overtighten.
+6. Verify the propeller spins freely inside the duct without rubbing.
+
+MECHANICAL MAINTENANCE
+- After each flight, inspect ducts for cracks and propellers for chips or bent blades.
+- Keep the airframe free of grit; debris in the ducts can strike propellers.
+- Check that the battery bay latch engages firmly so the battery cannot dislodge in flight.
+- Verify motor bearings are smooth — grinding, wobble, or unusual noise indicates a worn motor.
+- Do not fly with a damaged duct; a compromised duct reduces protection and can foul a propeller.
+
+COMMON MECHANICAL FAULTS
+- Propeller imbalance/damage: causes vibration, shaky video, and reduced efficiency — replace the set.
+- Motor wobble or grinding: worn bearing or foreign object; service or replace the motor.
+- Cracked duct: replace the affected component before flying.
+- Loose battery: clean the bay and confirm the latch clicks fully home.

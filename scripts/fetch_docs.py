@@ -1,10 +1,21 @@
+from __future__ import annotations
+
+import sys
 import time
 from datetime import datetime
 from pathlib import Path
 
-import requests
-from bs4 import BeautifulSoup
+# requests / bs4 are imported lazily inside the --web path so that building the
+# authoritative knowledge base from data/seed/ works fully offline with no
+# scraping dependencies installed.
 
+# Curated, version-controlled, verified DJI Avata 2 documentation. This is the
+# authoritative knowledge base: it is deterministic, offline, and trustworthy,
+# unlike scraped web pages which mix Avata 1/2 facts and contain stale specs.
+SEED_DIR = Path("data/seed")
+
+# Optional supplementary web sources. Disabled by default to keep the knowledge
+# base reliable and reproducible. Enable with: python scripts/fetch_docs.py --web
 SOURCES = {
     "dji_avata_manualslib": "https://www.manualslib.com/manual/2833828/Dji-Avata.html",
     "dji_avata_manualsplus": "https://manuals.plus/m/7821e4e36bf6bce7d4da7c7723396daa1e09bf6253aa4239f7eab923979c7ffe",
@@ -54,6 +65,9 @@ def extract_text(soup: BeautifulSoup) -> str:
 
 
 def fetch_and_save(slug: str, url: str) -> dict:
+    import requests
+    from bs4 import BeautifulSoup
+
     log = {
         "slug": slug,
         "url": url,
@@ -88,10 +102,43 @@ def fetch_and_save(slug: str, url: str) -> dict:
     return log
 
 
+def copy_seed_docs() -> int:
+    """Copy the curated, verified Avata 2 docs into data/raw. Authoritative."""
+    seed_files = sorted(SEED_DIR.glob("*.txt"))
+    if not seed_files:
+        print(f"  [WARN] No seed docs found in {SEED_DIR}/")
+        return 0
+    total_chars = 0
+    for path in seed_files:
+        text = path.read_text(encoding="utf-8")
+        out_path = OUTPUT_DIR / path.name
+        out_path.write_text(text, encoding="utf-8")
+        total_chars += len(text)
+        print(f"  [SEED] {path.name}: {len(text):,} chars → {out_path}")
+    print(f"\n  Seeded {len(seed_files)} verified docs ({total_chars:,} chars)")
+    return len(seed_files)
+
+
 def main():
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    use_web = "--web" in sys.argv
+
     print(f"\n{'=' * 50}")
-    print("AVATA CO-PILOT — Fetching documentation")
+    print("AVATA CO-PILOT — Building documentation (DJI Avata 2)")
+    print(f"{'=' * 50}\n")
+
+    print("Loading curated knowledge base (authoritative):")
+    seeded = copy_seed_docs()
+
+    if not use_web:
+        print("\nWeb scraping disabled (default). The knowledge base is built from")
+        print("the verified, version-controlled docs in data/seed/.")
+        print("Run with --web to also pull supplementary online sources.")
+        print(f"\nReady: {seeded} verified docs in {OUTPUT_DIR}/")
+        return
+
+    print(f"\n{'=' * 50}")
+    print("Fetching supplementary web sources (--web)")
     print(f"{'=' * 50}\n")
 
     results = []
@@ -104,13 +151,13 @@ def main():
     ok = sum(1 for r in results if r["status"] == "ok")
     total_chars = sum(r["char_count"] for r in results)
     print(f"\n{'=' * 50}")
-    print(f"Done: {ok}/{len(results)} sources fetched")
-    print(f"Total text: {total_chars:,} characters")
+    print(f"Done: {seeded} verified docs + {ok}/{len(results)} web sources fetched")
+    print(f"Web text: {total_chars:,} characters")
     print(f"Output: {OUTPUT_DIR}/")
 
     if ok < len(results):
-        print("\n[NOTE] Some sources failed. The system will still work with partial data.")
-        print("       You can manually add text files to data/raw/ if needed.")
+        print("\n[NOTE] Some web sources failed. The verified seed docs ensure the")
+        print("       system still has a complete, reliable knowledge base.")
 
 
 if __name__ == "__main__":

@@ -15,11 +15,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 CONFIG_PATH = Path("config.json")
 
 BENCHMARK: list[tuple[str, list[str]]] = [
-    ("What is the maximum flight time of the DJI Avata?", ["18", "min"]),
-    ("What is the maximum speed in Sport mode?", ["97", "km"]),
-    ("How do I activate Return to Home on the DJI Avata?", ["rth", "button", "return"]),
+    ("What is the maximum flight time of the DJI Avata 2?", ["23", "min"]),
+    ("What is the maximum horizontal speed in Manual mode?", ["27", "m/s"]),
+    ("How do I activate Return to Home on the DJI Avata 2?", ["rth", "button", "return"]),
     ("What does a blinking red LED indicate?", ["battery", "low"]),
-    ("What is the maximum video transmission range?", ["10", "km", "range"]),
+    ("What is the maximum video transmission range?", ["13", "10", "km"]),
     ("What is M-Mode on the DJI Avata?", ["manual", "stabiliz"]),
     ("How many GPS satellites are needed for stable flight?", ["satellite", "gps"]),
     ("What is the emergency stop procedure?", ["switch", "stop", "arm"]),

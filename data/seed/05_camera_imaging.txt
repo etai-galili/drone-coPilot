@@ -1,0 +1,51 @@
+DJI AVATA 2 — CAMERA, GIMBAL, AND IMAGING SYSTEM
+
+CAMERA / SENSOR (VERIFIED SPECS)
+- Sensor: 1/1.3-inch CMOS.
+- Effective resolution: 12 MP.
+- Field of view: 155 degrees (ultra-wide).
+- Aperture: f/2.8 (fixed).
+- ISO range: 100-25600 (Auto and Manual).
+- Lens: fixed-focus wide-angle; no optical zoom.
+
+STABILIZATION
+- Single-axis mechanical gimbal (tilt) combined with electronic image stabilization.
+- RockSteady electronic stabilization smooths footage during aggressive FPV maneuvers.
+- HorizonSteady keeps the horizon level even when the aircraft rolls.
+- The gimbal tilt range allows aiming the camera up and down for diving and climbing shots.
+
+VIDEO MODES (TYPICAL)
+- 4K: up to 60 fps (also 50/48/30/25/24).
+- 2.7K: up to 120 fps for slow motion.
+- 1080p: up to 120 fps.
+- Color profiles: Standard and a flat profile for grading.
+- Codec/container: H.264 / H.265 in MP4.
+
+PHOTO MODE
+- 12 MP still images.
+- Single-shot stills in JPEG.
+
+LIVE VIEW AND VIDEO TRANSMISSION (DJI O4, VERIFIED)
+- Transmission system: DJI O4.
+- Live feed to DJI Goggles 3: 1080p at up to 100 fps.
+- Latency: approximately 24 ms.
+- Maximum bitrate: 60 Mbps.
+- Maximum transmission range (unobstructed, interference-free): 13 km (FCC) / 10 km (CE / SRRC / MIC).
+- Operating frequency bands: 2.4 GHz, 5.1 GHz, and 5.8 GHz (region dependent).
+
+STORAGE
+- Internal storage: 46 GB on board.
+- External: microSD card supported for additional capacity.
+- Footage can be offloaded via USB-C.
+
+IMAGING OPERATION NOTES
+- Set resolution and frame rate in the goggles menu before flight to match the intended edit.
+- Higher frame rates and resolutions consume storage faster; confirm free space pre-flight.
+- The wide FOV exaggerates speed and is ideal for immersive FPV; mind the lens for sun flare on bright days.
+- Keep the lens and gimbal guard clean; remove the gimbal protector before powering on for flight.
+
+CAMERA TROUBLESHOOTING
+- Shaky footage: confirm RockSteady/HorizonSteady is enabled and propellers are balanced/undamaged.
+- Recording stops unexpectedly: check storage space, card health (use a recommended high-speed card), and overheating.
+- Tilted horizon: recalibrate the gimbal/IMU on a level surface.
+- No live image in goggles: re-check the aircraft-goggles link and that the gimbal protector is removed.

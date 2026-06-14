@@ -435,23 +435,25 @@ QUICK_REF_HTML = """
 <div class='tac-grid'>
 
   <div class='tac-card'>
-    <h3>// Flight Specs</h3>
-    <p><strong>Max flight time</strong> · ~18 min (Avata 1) / ~23 min (Avata 2)</p>
-    <p><strong>Max range</strong> · 10 km (CE) / 13 km (FCC)</p>
-    <p><strong>Max altitude</strong> · 500 m AGL</p>
+    <h3>// Flight Specs (Avata 2)</h3>
+    <p><strong>Takeoff weight</strong> · ~377 g</p>
+    <p><strong>Max flight time</strong> · ~23 min (hover ~21 min)</p>
+    <p><strong>Max range</strong> · 13 km (FCC) / 10 km (CE)</p>
+    <p><strong>Service ceiling</strong> · 5000 m</p>
     <p><strong>Max wind resistance</strong> · 10.7 m/s (Level 5)</p>
-    <p><strong>Max speed (Sport)</strong> · 97.2 km/h</p>
-    <p><strong>Video transmission</strong> · O3+ up to 1080p/100fps</p>
+    <p><strong>Max speed</strong> · 8 / 16 / 27 m/s (N / S / M)</p>
+    <p><strong>Camera</strong> · 1/1.3" CMOS · 12 MP · 4K/60 · 155° FOV</p>
+    <p><strong>Video transmission</strong> · DJI O4 · 1080p/100fps · 24 ms</p>
   </div>
 
   <div class='tac-card'>
     <h3>// Emergency Procedures</h3>
-    <p><strong>RTH</strong> · Press and hold RTH button 2 sec</p>
-    <p><strong>Emergency Stop</strong> · Toggle arm switch 3× in 1 sec</p>
-    <p><strong>Turtle Mode</strong> · Activated via goggles when inverted</p>
-    <p><strong>Signal Loss</strong> · Auto-RTH after 11 sec</p>
+    <p><strong>RTH</strong> · Press &amp; hold RTH button on RC Motion 3</p>
+    <p><strong>Emergency Stop</strong> · Cuts motors mid-air — last resort only</p>
+    <p><strong>Turtle Mode</strong> · Flip upright via goggles (clear area)</p>
+    <p><strong>Signal Loss</strong> · Smart RTH engages automatically</p>
     <p><strong>Low Battery</strong> · Auto-land at critical level</p>
-    <p><strong>Obstacle</strong> · Hover/brake in N-Mode</p>
+    <p><strong>Obstacle</strong> · Press lock to brake/hover (N-Mode)</p>
   </div>
 
   <div class='tac-card'>

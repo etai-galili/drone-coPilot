@@ -1,0 +1,41 @@
+DJI AVATA 2 — ELECTRICAL AND POWER SYSTEM
+
+INTELLIGENT FLIGHT BATTERY (VERIFIED SPECS)
+- Capacity: 2150 mAh.
+- Nominal voltage: 14.76 V.
+- Energy: 31.7 Wh.
+- Chemistry: LiPo 4S (four cells in series).
+- Weight: approximately 145 g.
+- Provides up to approximately 23 minutes of flight (forward flight, windless, sea level).
+
+The battery is a smart battery: it reports charge level, cell health, temperature, and cycle count to the aircraft and goggles. It performs self-discharge to a safe storage level after a set idle period.
+
+CHARGING
+- Charge with the DJI USB-C charger or the Two-Way Charging Hub (Fly More Combo).
+- The Charging Hub can store multiple batteries and, in power-accumulation mode, transfer remaining charge from lower batteries into the highest one.
+- Charge within the recommended temperature range; do not charge a hot battery straight after flight.
+- A full charge from near-empty takes on the order of tens of minutes with the standard charger; using the hub to charge several batteries is sequential.
+
+BATTERY LED INDICATORS (ON THE BATTERY / AIRCRAFT)
+- Four LEDs show charge level in roughly 25% steps.
+- During charging, LEDs pulse to indicate progress; all solid means full.
+- Blinking patterns can indicate temperature protection or a fault — stop use and let it reach normal temperature.
+
+AIRCRAFT STATUS LED (VERIFIED INTERPRETATION)
+- Solid Green: ready to fly.
+- Blinking Yellow: GNSS/compass calibration or acquiring positioning.
+- Blinking Red: low battery warning — land soon.
+- Alternating Red/Yellow: IMU or sensor error — do not fly.
+- Solid Blue: connecting / initializing.
+
+POWER MANAGEMENT AND WARNINGS
+- Low Battery Warning: the goggles prompt the operator to return; plan to land with reserve.
+- Critical Low Battery: the aircraft auto-lands at the current position if it cannot reach Home.
+- Smart RTH on Battery: the system estimates whether remaining charge is enough to return and can trigger RTH automatically.
+- Cold weather reduces available capacity; warm batteries before flight in low temperatures.
+
+ELECTRICAL CARE AND TROUBLESHOOTING
+- Keep contacts clean and dry; corrosion or moisture can cause connection faults.
+- A battery that will not power on may be in deep-sleep storage state — connect to a charger briefly to wake it.
+- A battery that drains abnormally fast, runs hot, or shows swelling must be retired and recycled safely.
+- Track cycle count; capacity and runtime decline as cells age.
