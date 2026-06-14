@@ -8,15 +8,15 @@
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg:        #0a0c0f;
-    --surface:   #0d1117;
-    --border:    #1e2530;
-    --green:     #4af0b0;
-    --green-dim: #2a5040;
-    --text:      #e0e4ec;
-    --text-sec:  #7090a0;
-    --red:       #f04a4a;
-    --amber:     #f0a04a;
+    --bg:        #0a0d11;
+    --surface:   #0f141a;
+    --border:    #283039;
+    --green:     #a6ce39;
+    --green-dim: #2e3a18;
+    --text:      #edf1f3;
+    --text-sec:  #93a0a8;
+    --red:       #f0524a;
+    --amber:     #f0b53a;
   }
 
   body {
@@ -40,11 +40,24 @@
     flex-shrink: 0;
   }
   .logo {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .logo .brand {
+    font-family: system-ui, sans-serif;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .logo .ver {
     font-family: monospace;
-    font-size: 1.1rem;
-    font-weight: 700;
+    font-size: 0.78rem;
+    font-weight: 600;
     color: var(--green);
-    letter-spacing: 0.05em;
+    letter-spacing: 0.1em;
   }
   .header-right {
     display: flex;
@@ -65,8 +78,8 @@
     animation: pulse 2s ease-in-out infinite;
   }
   @keyframes pulse {
-    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(74,240,176,0.5); }
-    50%       { opacity: 0.7; box-shadow: 0 0 0 6px rgba(74,240,176,0); }
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(166,206,57,0.5); }
+    50%       { opacity: 0.7; box-shadow: 0 0 0 6px rgba(166,206,57,0); }
   }
 
   /* CHAT LOG */
@@ -100,7 +113,7 @@
     align-self: flex-start;
   }
   .avatar.ai  { background: var(--green-dim); color: var(--green); }
-  .avatar.you { background: #1a2535; color: var(--text-sec); }
+  .avatar.you { background: #1c232c; color: var(--text-sec); }
 
   .bubble {
     max-width: 72%;
@@ -117,7 +130,7 @@
   }
   .bubble.user {
     background: var(--green-dim);
-    border: 1px solid #3a7060;
+    border: 1px solid #4a5a24;
     border-bottom-right-radius: 6px;
     color: var(--text);
   }
@@ -338,7 +351,7 @@
 
 <!-- HEADER -->
 <header>
-  <div class="logo">ProfWorxML v.1</div>
+  <div class="logo"><span class="brand">ProfWorx</span><span class="ver">ML v.1</span></div>
   <div class="header-right">
     <div class="drone-id">OWL EYES 2 // RECON</div>
     <div class="status-dot"></div>
