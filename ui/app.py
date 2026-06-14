@@ -590,6 +590,542 @@ def run_self_test() -> str:
 
 
 # ---------------------------------------------------------------------------
+# Tab 5 — Drone Explorer (interactive SVG)
+# ---------------------------------------------------------------------------
+DRONE_EXPLORER_HTML = """
+<style>
+#de-wrap { display:flex; gap:0; height:620px; background:#080C10; border-radius:10px; overflow:hidden; border:1px solid #30363D; font-family:'JetBrains Mono',monospace; }
+#de-svg-panel { flex:1; position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#080C10; min-width:0; }
+#de-hint { position:absolute; top:14px; left:50%; transform:translateX(-50%); font-size:10px; color:#484F58; letter-spacing:.1em; text-transform:uppercase; white-space:nowrap; pointer-events:none; }
+#de-zoom-wrap { width:100%; height:100%; display:flex; align-items:center; justify-content:center; overflow:hidden; cursor:default; }
+#de-svg { transition: transform .45s cubic-bezier(.4,0,.2,1); transform-origin: center center; }
+#de-info { width:310px; flex-shrink:0; background:#0D1117; border-left:1px solid #30363D; display:flex; flex-direction:column; overflow:hidden; }
+#de-info-header { padding:16px 18px 12px; border-bottom:1px solid #30363D; }
+#de-info-title { font-size:14px; font-weight:700; color:#E6EDF3; letter-spacing:.06em; margin:0 0 2px; }
+#de-info-sub { font-size:10px; color:#8B949E; letter-spacing:.1em; text-transform:uppercase; }
+#de-info-body { flex:1; overflow-y:auto; padding:0 18px 16px; }
+#de-info-body::-webkit-scrollbar { width:4px; } #de-info-body::-webkit-scrollbar-track { background:#0D1117; } #de-info-body::-webkit-scrollbar-thumb { background:#30363D; border-radius:2px; }
+.de-spec-table { width:100%; border-collapse:collapse; margin-top:14px; }
+.de-spec-table tr { border-bottom:1px solid #1C2330; }
+.de-spec-table td { padding:7px 4px; font-size:12px; line-height:1.4; }
+.de-spec-table td:first-child { color:#8B949E; width:45%; padding-right:8px; }
+.de-spec-table td:last-child { color:#E6EDF3; font-weight:500; }
+.de-desc { font-size:12px; color:#8B949E; line-height:1.6; margin-top:12px; padding-top:12px; border-top:1px solid #1C2330; }
+.de-badge { display:inline-block; padding:2px 8px; border-radius:3px; font-size:10px; font-weight:700; letter-spacing:.08em; margin-top:12px; }
+#de-reset { position:absolute; bottom:14px; right:14px; background:transparent; border:1px solid #30363D; color:#8B949E; font-size:10px; font-family:'JetBrains Mono',monospace; letter-spacing:.08em; text-transform:uppercase; padding:5px 12px; border-radius:4px; cursor:pointer; transition:all .15s; }
+#de-reset:hover { border-color:#00FF94; color:#00FF94; }
+/* hotspot pulse animation */
+@keyframes de-pulse { 0%,100%{opacity:.6} 50%{opacity:1} }
+.de-hs { cursor:pointer; transition:opacity .2s; }
+.de-hs:hover .de-hs-ring { animation: de-pulse .9s ease-in-out infinite; }
+</style>
+
+<div id="de-wrap">
+  <!-- SVG panel -->
+  <div id="de-svg-panel">
+    <div id="de-hint">לחץ על חלק לפרטים &nbsp;·&nbsp; CLICK A PART TO INSPECT</div>
+    <div id="de-zoom-wrap">
+      <svg id="de-svg" viewBox="0 0 500 520" xmlns="http://www.w3.org/2000/svg" width="480" height="500">
+        <defs>
+          <filter id="de-glow-g"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <filter id="de-glow-c"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <filter id="de-glow-o"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <radialGradient id="de-bg-grad" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#0d1929" stop-opacity="1"/>
+            <stop offset="100%" stop-color="#080C10" stop-opacity="1"/>
+          </radialGradient>
+        </defs>
+
+        <!-- Background -->
+        <rect width="500" height="520" fill="url(#de-bg-grad)"/>
+        <!-- Grid -->
+        <g stroke="#1a2535" stroke-width=".5" opacity=".6">
+          <line x1="0" y1="130" x2="500" y2="130"/><line x1="0" y1="260" x2="500" y2="260"/>
+          <line x1="0" y1="390" x2="500" y2="390"/>
+          <line x1="125" y1="0" x2="125" y2="520"/><line x1="250" y1="0" x2="250" y2="520"/>
+          <line x1="375" y1="0" x2="375" y2="520"/>
+        </g>
+        <!-- Crosshair center -->
+        <g stroke="#1a2535" stroke-width=".8">
+          <line x1="240" y1="258" x2="260" y2="258"/><line x1="250" y1="248" x2="250" y2="268"/>
+        </g>
+
+        <!-- ═══ PROP GUARDS (outer rings) ═══ -->
+        <!-- FL guard -->
+        <circle cx="132" cy="132" r="82" fill="#0a1020" stroke="#2a4a7a" stroke-width="2.2" id="de-guard-fl"/>
+        <circle cx="132" cy="132" r="64" fill="none" stroke="#1e3560" stroke-width="1" opacity=".5"/>
+        <!-- FR guard -->
+        <circle cx="368" cy="132" r="82" fill="#0a1020" stroke="#2a4a7a" stroke-width="2.2" id="de-guard-fr"/>
+        <circle cx="368" cy="132" r="64" fill="none" stroke="#1e3560" stroke-width="1" opacity=".5"/>
+        <!-- RL guard -->
+        <circle cx="132" cy="388" r="82" fill="#0a1020" stroke="#2a4a7a" stroke-width="2.2" id="de-guard-rl"/>
+        <circle cx="132" cy="388" r="64" fill="none" stroke="#1e3560" stroke-width="1" opacity=".5"/>
+        <!-- RR guard -->
+        <circle cx="368" cy="388" r="82" fill="#0a1020" stroke="#2a4a7a" stroke-width="2.2" id="de-guard-rr"/>
+        <circle cx="368" cy="388" r="64" fill="none" stroke="#1e3560" stroke-width="1" opacity=".5"/>
+
+        <!-- Guard spoke crosses -->
+        <g stroke="#1e3560" stroke-width=".8" opacity=".6">
+          <line x1="132" y1="54" x2="132" y2="210"/><line x1="54" y1="132" x2="210" y2="132"/>
+          <line x1="368" y1="54" x2="368" y2="210"/><line x1="290" y1="132" x2="446" y2="132"/>
+          <line x1="132" y1="310" x2="132" y2="466"/><line x1="54" y1="388" x2="210" y2="388"/>
+          <line x1="368" y1="310" x2="368" y2="466"/><line x1="290" y1="388" x2="446" y2="388"/>
+        </g>
+
+        <!-- ═══ ARMS ═══ -->
+        <!-- FL arm -->
+        <polygon points="132,152 168,178 188,162 178,138" fill="#0d1929" stroke="#2a4a7a" stroke-width="1.5"/>
+        <!-- FR arm -->
+        <polygon points="368,152 332,178 312,162 322,138" fill="#0d1929" stroke="#2a4a7a" stroke-width="1.5"/>
+        <!-- RL arm -->
+        <polygon points="132,368 168,342 188,358 178,382" fill="#0d1929" stroke="#2a4a7a" stroke-width="1.5"/>
+        <!-- RR arm -->
+        <polygon points="368,368 332,342 312,358 322,382" fill="#0d1929" stroke="#2a4a7a" stroke-width="1.5"/>
+
+        <!-- ═══ MAIN BODY ═══ -->
+        <polygon points="188,162 220,148 280,148 312,162 320,200 320,320 312,358 280,372 220,372 188,358 180,320 180,200"
+          fill="#0d1929" stroke="#3a6aaa" stroke-width="2"/>
+
+        <!-- Body interior detail lines -->
+        <line x1="250" y1="160" x2="250" y2="370" stroke="#1e3560" stroke-width=".8" opacity=".5"/>
+        <line x1="185" y1="260" x2="315" y2="260" stroke="#1e3560" stroke-width=".8" opacity=".5"/>
+
+        <!-- ═══ BATTERY COVER ═══ -->
+        <rect id="de-battery-shape" x="210" y="190" width="80" height="120" rx="6"
+          fill="#111c2e" stroke="#3a6aaa" stroke-width="1.8"/>
+        <!-- Battery grip lines -->
+        <line x1="218" y1="210" x2="282" y2="210" stroke="#1e3560" stroke-width=".8"/>
+        <line x1="218" y1="220" x2="282" y2="220" stroke="#1e3560" stroke-width=".8"/>
+        <!-- DJI logo placeholder -->
+        <text x="250" y="263" fill="#2a4a7a" font-family="monospace" font-size="11" font-weight="bold" text-anchor="middle" letter-spacing="2">DJI</text>
+        <!-- AVATA text -->
+        <text x="250" y="278" fill="#1e3560" font-family="monospace" font-size="8" text-anchor="middle" letter-spacing="3">AVATA</text>
+        <!-- Battery level bar -->
+        <rect x="218" y="290" width="64" height="8" rx="2" fill="#0a0f1a" stroke="#1e3560" stroke-width="1"/>
+        <rect x="219" y="291" width="48" height="6" rx="1.5" fill="#00FF94" opacity=".6"/>
+
+        <!-- ═══ FLIGHT CONTROLLER (ESC area) ═══ -->
+        <rect id="de-fc-shape" x="215" y="320" width="70" height="45" rx="4"
+          fill="#0a1420" stroke="#2a4a7a" stroke-width="1.2"/>
+        <!-- PCB detail -->
+        <rect x="222" y="327" width="56" height="31" rx="2" fill="#070e18" stroke="#1e3560" stroke-width=".8"/>
+        <circle cx="229" cy="343" r="3" fill="#1e3560"/><circle cx="271" cy="343" r="3" fill="#1e3560"/>
+        <line x1="234" y1="335" x2="266" y2="335" stroke="#1e3560" stroke-width=".6"/>
+        <line x1="234" y1="343" x2="266" y2="343" stroke="#1e3560" stroke-width=".6"/>
+        <line x1="234" y1="351" x2="266" y2="351" stroke="#1e3560" stroke-width=".6"/>
+
+        <!-- ═══ CAMERA ═══ -->
+        <!-- Camera housing -->
+        <ellipse cx="250" cy="175" rx="22" ry="14" fill="#070d18" stroke="#00ffcc" stroke-width="1.8" filter="url(#de-glow-c)"/>
+        <circle cx="250" cy="175" r="10" fill="#0a1520" stroke="#00ffcc" stroke-width="1.5"/>
+        <circle cx="250" cy="175" r="5.5" fill="#00ffcc" opacity=".2"/>
+        <circle cx="250" cy="175" r="2.5" fill="#00ffcc" opacity=".4"/>
+        <!-- Camera reflection dot -->
+        <circle cx="253" cy="172" r="1.2" fill="white" opacity=".5"/>
+
+        <!-- ═══ VIDEO TX ANTENNA ═══ -->
+        <!-- O3+ antenna represented as a small element top of body -->
+        <rect x="241" y="150" width="18" height="8" rx="2" fill="#111c2e" stroke="#4a9eff" stroke-width="1.2"/>
+        <line x1="250" y1="150" x2="250" y2="143" stroke="#4a9eff" stroke-width="1.5"/>
+        <circle cx="250" cy="141" r="3" fill="none" stroke="#4a9eff" stroke-width="1.2" opacity=".7"/>
+
+        <!-- ═══ MOTORS ═══ -->
+        <!-- FL motor -->
+        <circle cx="132" cy="132" r="24" fill="#0d1929" stroke="#4a9eff" stroke-width="2" filter="url(#de-glow-g)"/>
+        <circle cx="132" cy="132" r="14" fill="#0a1020" stroke="#4a9eff" stroke-width="1.5"/>
+        <circle cx="132" cy="132" r="5" fill="#4a9eff" opacity=".6"/>
+        <!-- FR motor -->
+        <circle cx="368" cy="132" r="24" fill="#0d1929" stroke="#4a9eff" stroke-width="2" filter="url(#de-glow-g)"/>
+        <circle cx="368" cy="132" r="14" fill="#0a1020" stroke="#4a9eff" stroke-width="1.5"/>
+        <circle cx="368" cy="132" r="5" fill="#4a9eff" opacity=".6"/>
+        <!-- RL motor -->
+        <circle cx="132" cy="388" r="24" fill="#0d1929" stroke="#4a9eff" stroke-width="2" filter="url(#de-glow-g)"/>
+        <circle cx="132" cy="388" r="14" fill="#0a1020" stroke="#4a9eff" stroke-width="1.5"/>
+        <circle cx="132" cy="388" r="5" fill="#4a9eff" opacity=".6"/>
+        <!-- RR motor -->
+        <circle cx="368" cy="388" r="24" fill="#0d1929" stroke="#4a9eff" stroke-width="2" filter="url(#de-glow-g)"/>
+        <circle cx="368" cy="388" r="14" fill="#0a1020" stroke="#4a9eff" stroke-width="1.5"/>
+        <circle cx="368" cy="388" r="5" fill="#4a9eff" opacity=".6"/>
+
+        <!-- ═══ PROPELLERS ═══ -->
+        <!-- FL props (CW - 2 blades shown as ellipses) -->
+        <ellipse cx="132" cy="132" rx="52" ry="7" fill="rgba(74,158,255,.12)" stroke="#4a9eff" stroke-width="1" opacity=".7" transform="rotate(20,132,132)"/>
+        <ellipse cx="132" cy="132" rx="52" ry="7" fill="rgba(74,158,255,.12)" stroke="#4a9eff" stroke-width="1" opacity=".7" transform="rotate(110,132,132)"/>
+        <!-- FR props (CCW) -->
+        <ellipse cx="368" cy="132" rx="52" ry="7" fill="rgba(74,158,255,.12)" stroke="#4a9eff" stroke-width="1" opacity=".7" transform="rotate(-20,368,132)"/>
+        <ellipse cx="368" cy="132" rx="52" ry="7" fill="rgba(74,158,255,.12)" stroke="#4a9eff" stroke-width="1" opacity=".7" transform="rotate(70,368,132)"/>
+        <!-- RL props (CCW) -->
+        <ellipse cx="132" cy="388" rx="52" ry="7" fill="rgba(74,158,255,.12)" stroke="#4a9eff" stroke-width="1" opacity=".7" transform="rotate(-20,132,388)"/>
+        <ellipse cx="132" cy="388" rx="52" ry="7" fill="rgba(74,158,255,.12)" stroke="#4a9eff" stroke-width="1" opacity=".7" transform="rotate(70,132,388)"/>
+        <!-- RR props (CW) -->
+        <ellipse cx="368" cy="388" rx="52" ry="7" fill="rgba(74,158,255,.12)" stroke="#4a9eff" stroke-width="1" opacity=".7" transform="rotate(20,368,388)"/>
+        <ellipse cx="368" cy="388" rx="52" ry="7" fill="rgba(74,158,255,.12)" stroke="#4a9eff" stroke-width="1" opacity=".7" transform="rotate(110,368,388)"/>
+
+        <!-- ═══ LED INDICATORS ═══ -->
+        <circle cx="195" cy="165" r="3" fill="#00FF94" opacity=".8" filter="url(#de-glow-g)"/>
+        <circle cx="305" cy="165" r="3" fill="#00FF94" opacity=".8" filter="url(#de-glow-g)"/>
+        <circle cx="195" cy="355" r="3" fill="#ff4444" opacity=".8"/>
+        <circle cx="305" cy="355" r="3" fill="#ff4444" opacity=".8"/>
+
+        <!-- ═══ PART LABELS ═══ -->
+        <g font-family="monospace" font-size="8.5" fill="#484F58" letter-spacing=".06em">
+          <text x="250" y="510" text-anchor="middle">DJI AVATA · TOP VIEW · 1:1 SCALE REFERENCE</text>
+        </g>
+
+        <!-- ═══ INTERACTIVE HOTSPOTS ═══ -->
+        <!-- Camera hotspot -->
+        <g class="de-hs" data-part="camera" onclick="deSelect('camera')">
+          <circle class="de-hs-ring" cx="250" cy="175" r="28" fill="rgba(0,255,204,.04)" stroke="#00ffcc" stroke-width="1.5" stroke-dasharray="4,3" opacity=".0"/>
+          <circle cx="250" cy="175" r="28" fill="transparent"/>
+          <text x="250" y="208" text-anchor="middle" font-family="monospace" font-size="7.5" fill="#00ffcc" opacity=".7" letter-spacing=".05em" pointer-events="none">CAMERA</text>
+        </g>
+
+        <!-- Battery hotspot -->
+        <g class="de-hs" data-part="battery" onclick="deSelect('battery')">
+          <rect class="de-hs-ring" x="205" y="185" width="90" height="130" rx="8" fill="rgba(255,149,0,.04)" stroke="#ff9500" stroke-width="1.5" stroke-dasharray="4,3" opacity=".0"/>
+          <rect x="205" y="185" width="90" height="130" rx="8" fill="transparent"/>
+          <text x="250" y="328" text-anchor="middle" font-family="monospace" font-size="7.5" fill="#ff9500" opacity=".7" letter-spacing=".05em" pointer-events="none">BATTERY</text>
+        </g>
+
+        <!-- FL Motor hotspot -->
+        <g class="de-hs" data-part="motor-fl" onclick="deSelect('motor-fl')">
+          <circle class="de-hs-ring" cx="132" cy="132" r="40" fill="rgba(74,158,255,.04)" stroke="#4a9eff" stroke-width="1.5" stroke-dasharray="4,3" opacity=".0"/>
+          <circle cx="132" cy="132" r="40" fill="transparent"/>
+          <text x="132" y="88" text-anchor="middle" font-family="monospace" font-size="7.5" fill="#4a9eff" opacity=".7" pointer-events="none">FL MOTOR</text>
+        </g>
+
+        <!-- FR Motor hotspot -->
+        <g class="de-hs" data-part="motor-fr" onclick="deSelect('motor-fr')">
+          <circle class="de-hs-ring" cx="368" cy="132" r="40" fill="rgba(74,158,255,.04)" stroke="#4a9eff" stroke-width="1.5" stroke-dasharray="4,3" opacity=".0"/>
+          <circle cx="368" cy="132" r="40" fill="transparent"/>
+          <text x="368" y="88" text-anchor="middle" font-family="monospace" font-size="7.5" fill="#4a9eff" opacity=".7" pointer-events="none">FR MOTOR</text>
+        </g>
+
+        <!-- RL Motor hotspot -->
+        <g class="de-hs" data-part="motor-rl" onclick="deSelect('motor-rl')">
+          <circle class="de-hs-ring" cx="132" cy="388" r="40" fill="rgba(74,158,255,.04)" stroke="#4a9eff" stroke-width="1.5" stroke-dasharray="4,3" opacity=".0"/>
+          <circle cx="132" cy="388" r="40" fill="transparent"/>
+          <text x="132" y="442" text-anchor="middle" font-family="monospace" font-size="7.5" fill="#4a9eff" opacity=".7" pointer-events="none">RL MOTOR</text>
+        </g>
+
+        <!-- RR Motor hotspot -->
+        <g class="de-hs" data-part="motor-rr" onclick="deSelect('motor-rr')">
+          <circle class="de-hs-ring" cx="368" cy="388" r="40" fill="rgba(74,158,255,.04)" stroke="#4a9eff" stroke-width="1.5" stroke-dasharray="4,3" opacity=".0"/>
+          <circle cx="368" cy="388" r="40" fill="transparent"/>
+          <text x="368" y="442" text-anchor="middle" font-family="monospace" font-size="7.5" fill="#4a9eff" opacity=".7" pointer-events="none">RR MOTOR</text>
+        </g>
+
+        <!-- Frame / Guards hotspot (arm area) -->
+        <g class="de-hs" data-part="frame" onclick="deSelect('frame')">
+          <polygon class="de-hs-ring" points="140,152 170,175 185,160 160,135" fill="rgba(0,255,148,.04)" stroke="#00FF94" stroke-width="1.5" stroke-dasharray="4,3" opacity=".0"/>
+          <polygon points="140,152 170,175 185,160 160,135" fill="transparent"/>
+          <text x="105" y="165" text-anchor="middle" font-family="monospace" font-size="7.5" fill="#00FF94" opacity=".7" pointer-events="none">FRAME</text>
+        </g>
+
+        <!-- FC / ESC hotspot -->
+        <g class="de-hs" data-part="fc" onclick="deSelect('fc')">
+          <rect class="de-hs-ring" x="210" y="315" width="80" height="55" rx="5" fill="rgba(180,100,255,.04)" stroke="#b464ff" stroke-width="1.5" stroke-dasharray="4,3" opacity=".0"/>
+          <rect x="210" y="315" width="80" height="55" rx="5" fill="transparent"/>
+          <text x="250" y="382" text-anchor="middle" font-family="monospace" font-size="7.5" fill="#b464ff" opacity=".7" pointer-events="none">FC / ESC</text>
+        </g>
+
+        <!-- Video TX hotspot -->
+        <g class="de-hs" data-part="vtx" onclick="deSelect('vtx')">
+          <rect class="de-hs-ring" x="236" y="136" width="28" height="22" rx="4" fill="rgba(74,158,255,.04)" stroke="#4a9eff" stroke-width="1.5" stroke-dasharray="4,3" opacity=".0"/>
+          <rect x="236" y="136" width="28" height="22" rx="4" fill="transparent"/>
+        </g>
+      </svg>
+    </div>
+    <button id="de-reset" onclick="deReset()">↩ RESET VIEW</button>
+  </div>
+
+  <!-- Info panel -->
+  <div id="de-info">
+    <div id="de-info-header">
+      <p id="de-info-title">DJI AVATA</p>
+      <p id="de-info-sub">Select a part to inspect</p>
+    </div>
+    <div id="de-info-body">
+      <table class="de-spec-table" id="de-spec-tbl">
+        <tr><td>Weight</td><td>410 g (with battery)</td></tr>
+        <tr><td>Dimensions</td><td>180 × 232 × 80 mm</td></tr>
+        <tr><td>Max Speed</td><td>97.2 km/h (S-Mode)</td></tr>
+        <tr><td>Flight Time</td><td>~18 min</td></tr>
+        <tr><td>Range</td><td>10 km (O3+)</td></tr>
+        <tr><td>Video</td><td>4K / 60fps</td></tr>
+        <tr><td>Prop Size</td><td>4-inch ducted</td></tr>
+        <tr><td>Battery</td><td>2420mAh 4S LiPo</td></tr>
+      </table>
+      <p class="de-desc">לחץ על כל חלק ברחפן לקבלת מידע מפורט. הצבע ועל החלקים לגילוי.<br><br>Click any component on the drone to zoom in and see detailed technical specifications.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const DE_PARTS = {
+  camera: {
+    title: 'מצלמה + ג׳ימבל',
+    sub: 'Camera & Stabilization System',
+    color: '#00ffcc',
+    zoom: { x: 250, y: 175, scale: 2.8 },
+    specs: [
+      ['Sensor','1/1.7" CMOS'],
+      ['Resolution','4K @ 60fps'],
+      ['Slow Motion','2.7K@120fps / 1080p@120fps'],
+      ['FOV','155° Ultra-Wide'],
+      ['Aperture','f/2.8 fixed'],
+      ['ISO (Video)','100 – 6400'],
+      ['Shutter','1/8000s max'],
+      ['Stabilization','RockSteady 3.0 EIS'],
+      ['Horizon Steady','±35° correction'],
+      ['Format','MP4 / MOV (H.264/H.265)'],
+      ['Max Bitrate','150 Mbps'],
+    ],
+    desc: 'מצלמת 4K עם חיישן 1/1.7 אינץ׳ ועדשה 155 מעלות. מערכת RockSteady 3.0 מספקת ייצוב וידאו חלק גם במעוף מהיר.',
+  },
+  battery: {
+    title: 'סוללה חכמה',
+    sub: 'Intelligent Flight Battery',
+    color: '#ff9500',
+    zoom: { x: 250, y: 250, scale: 2.4 },
+    specs: [
+      ['Capacity','2420 mAh'],
+      ['Voltage','14.8V (4S LiPo)'],
+      ['Max Charge Power','38W'],
+      ['Charging Time','~70 min (18W charger)'],
+      ['Flight Time','~18 minutes'],
+      ['Weight','95.5 g'],
+      ['Energy','35.84 Wh'],
+      ['Operating Temp','5°C to 40°C'],
+      ['Discharge Temp','-10°C to 45°C'],
+    ],
+    desc: 'סוללת LiPo 4S עם ניהול חכם. מתריאה על מתח נמוך ומבצעת נחיתת חירום אוטומטית בסוללה קריטית.',
+  },
+  'motor-fl': {
+    title: 'מנוע קדמי-שמאל (FL)',
+    sub: 'Front-Left Brushless Motor — CW',
+    color: '#4a9eff',
+    zoom: { x: 132, y: 132, scale: 3.2 },
+    specs: [
+      ['KV Rating','~1700 KV'],
+      ['Type','Brushless DC 3-phase'],
+      ['Direction','CW (clockwise)'],
+      ['Motor Size','2306 equivalent'],
+      ['Voltage','14.8V (4S)'],
+      ['Est. Max Thrust','~600 g per motor'],
+      ['Bearing','Dual ball bearing'],
+      ['Cooling','Integrated duct airflow'],
+    ],
+    desc: 'מנוע ללא מברשות (brushless) עם כיוון סיבוב CW. עובד עם מדחף 4 אינץ׳ בתוך מגן דקטד לבטיחות ויעילות אוירודינמית.',
+  },
+  'motor-fr': {
+    title: 'מנוע קדמי-ימין (FR)',
+    sub: 'Front-Right Brushless Motor — CCW',
+    color: '#4a9eff',
+    zoom: { x: 368, y: 132, scale: 3.2 },
+    specs: [
+      ['KV Rating','~1700 KV'],
+      ['Type','Brushless DC 3-phase'],
+      ['Direction','CCW (counter-clockwise)'],
+      ['Motor Size','2306 equivalent'],
+      ['Voltage','14.8V (4S)'],
+      ['Est. Max Thrust','~600 g per motor'],
+      ['Bearing','Dual ball bearing'],
+      ['Cooling','Integrated duct airflow'],
+    ],
+    desc: 'מנוע ללא מברשות עם כיוון CCW. מנוע הקדמי-ימין פועל הפוך ממנוע הקדמי-שמאל לאיזון מומנט הכלי.',
+  },
+  'motor-rl': {
+    title: 'מנוע אחורי-שמאל (RL)',
+    sub: 'Rear-Left Brushless Motor — CCW',
+    color: '#4a9eff',
+    zoom: { x: 132, y: 388, scale: 3.2 },
+    specs: [
+      ['KV Rating','~1700 KV'],
+      ['Type','Brushless DC 3-phase'],
+      ['Direction','CCW (counter-clockwise)'],
+      ['Motor Size','2306 equivalent'],
+      ['Voltage','14.8V (4S)'],
+      ['Est. Max Thrust','~600 g per motor'],
+      ['Diagonal','163 mm motor-to-motor'],
+    ],
+    desc: 'מנוע אחורי-שמאל, כיוון CCW. ארבעת המנועים יחד מייצרים דחף כולל של ~2.4 ק"ג לרחפן שמשקלו 410 גרם.',
+  },
+  'motor-rr': {
+    title: 'מנוע אחורי-ימין (RR)',
+    sub: 'Rear-Right Brushless Motor — CW',
+    color: '#4a9eff',
+    zoom: { x: 368, y: 388, scale: 3.2 },
+    specs: [
+      ['KV Rating','~1700 KV'],
+      ['Type','Brushless DC 3-phase'],
+      ['Direction','CW (clockwise)'],
+      ['Motor Size','2306 equivalent'],
+      ['Voltage','14.8V (4S)'],
+      ['Est. Max Thrust','~600 g per motor'],
+      ['Diagonal','163 mm motor-to-motor'],
+    ],
+    desc: 'מנוע אחורי-ימין, כיוון CW. פריסת X-frame קלאסית: FL+RR = CW, FR+RL = CCW לאיזון הצינגל.',
+  },
+  frame: {
+    title: 'שלדה + מגני מדחפים',
+    sub: 'Frame & Ducted Prop Guards',
+    color: '#00FF94',
+    zoom: { x: 155, y: 152, scale: 2.5 },
+    specs: [
+      ['Material','Carbon fiber + polypropylene'],
+      ['Guard Diameter','~147 mm per guard'],
+      ['Frame Type','Integrated ducted X-frame'],
+      ['Total Weight (bare)','314 g'],
+      ['Duct Function','Efficiency + safety + thrust'],
+      ['Wind Resistance','Level 5 (10.7 m/s)'],
+      ['IP Rating','Not waterproof'],
+      ['Arm Count','4 integrated arms'],
+    ],
+    desc: 'שלדה מקארבון פחמן עם מגני מדחפים משולבים מפוליפרופילן. המגנים הדקטדים מגבירים יעילות ומאפשרים טיסה בתוך מבנים.',
+  },
+  fc: {
+    title: 'בקר טיסה + ESC',
+    sub: 'Flight Controller & 4-in-1 ESC',
+    color: '#b464ff',
+    zoom: { x: 250, y: 345, scale: 2.8 },
+    specs: [
+      ['FC','DJI proprietary FC'],
+      ['ESC Type','4-in-1 integrated'],
+      ['ESC Protocol','DSHOT600'],
+      ['Current Rating','35A continuous'],
+      ['Sensors','IMU + Barometer + Vision'],
+      ['GNSS','GPS + GLONASS (goggles mode)'],
+      ['Max Ascent','6 m/s'],
+      ['Max Descent','6 m/s'],
+      ['Flight Modes','N / S / M (Normal/Sport/Manual)'],
+    ],
+    desc: 'בקר טיסה בעל קוד DJI קנייני. מסנכרן בין ה-ESC, ה-IMU והחיישנים לטיסה יציבה. ה-ESC 4in1 מפשט את הרכבה ומשקל.',
+  },
+  vtx: {
+    title: 'משדר וידאו O3+',
+    sub: 'DJI O3+ Video Transmission',
+    color: '#4a9eff',
+    zoom: { x: 250, y: 148, scale: 3.0 },
+    specs: [
+      ['System','DJI O3+ (OcuSync 3+)'],
+      ['Max Range','10 km (CE) / 13 km (FCC)'],
+      ['Frequencies','2.4 GHz / 5.8 GHz auto'],
+      ['Max Video Bitrate','50 Mbps'],
+      ['Live Feed Res','1080p / 100fps'],
+      ['Latency','< 100 ms (with goggles)'],
+      ['Channel Bandwidth','10 / 20 / 40 MHz'],
+      ['Encryption','AES-256'],
+    ],
+    desc: 'מערכת O3+ מספקת שידור וידאו חי ב-1080p עם השהייה של פחות מ-100 אלפיות שנייה לגוגלס DJI. תומך ב-2.4 ו-5.8 GHz ועובר אוטומטית בין הערוצים.',
+  },
+};
+
+let deActive = null;
+
+function deSelect(partId) {
+  const part = DE_PARTS[partId];
+  if (!part) return;
+
+  // Highlight ring
+  document.querySelectorAll('.de-hs-ring').forEach(el => {
+    el.style.opacity = '0';
+    el.style.animation = 'none';
+  });
+  const parent = document.querySelector('[data-part="' + partId + '"]');
+  if (parent) {
+    const ring = parent.querySelector('.de-hs-ring');
+    if (ring) {
+      ring.style.opacity = '1';
+      ring.style.stroke = part.color;
+      ring.style.fill = 'rgba(' + hexToRgb(part.color) + ',.06)';
+      ring.style.animation = 'de-pulse .9s ease-in-out infinite';
+    }
+  }
+
+  // Zoom
+  const svg = document.getElementById('de-svg');
+  const wrap = document.getElementById('de-zoom-wrap');
+  const wW = wrap.offsetWidth || 480;
+  const wH = wrap.offsetHeight || 500;
+  const z = part.zoom;
+  const tx = wW/2 - z.x * z.scale;
+  const ty = wH/2 - z.y * z.scale;
+  svg.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + z.scale + ')';
+
+  // Info panel
+  document.getElementById('de-info-title').textContent = part.title;
+  document.getElementById('de-info-sub').textContent = part.sub;
+  document.getElementById('de-info-sub').style.color = part.color;
+
+  const tbl = document.getElementById('de-spec-tbl');
+  tbl.innerHTML = part.specs.map(([k,v]) =>
+    '<tr><td>' + k + '</td><td style="color:' + part.color + '">' + v + '</td></tr>'
+  ).join('');
+
+  let desc = document.getElementById('de-desc-p');
+  if (!desc) {
+    desc = document.createElement('p');
+    desc.id = 'de-desc-p';
+    desc.className = 'de-desc';
+    tbl.parentNode.appendChild(desc);
+  }
+  desc.textContent = part.desc;
+
+  deActive = partId;
+}
+
+function deReset() {
+  const svg = document.getElementById('de-svg');
+  svg.style.transform = 'translate(0,0) scale(1)';
+  document.querySelectorAll('.de-hs-ring').forEach(el => {
+    el.style.opacity = '0';
+    el.style.animation = 'none';
+  });
+  document.getElementById('de-info-title').textContent = 'DJI AVATA';
+  document.getElementById('de-info-sub').textContent = 'Select a part to inspect';
+  document.getElementById('de-info-sub').style.color = '#8B949E';
+  document.getElementById('de-spec-tbl').innerHTML = `
+    <tr><td>Weight</td><td>410 g (with battery)</td></tr>
+    <tr><td>Dimensions</td><td>180 × 232 × 80 mm</td></tr>
+    <tr><td>Max Speed</td><td>97.2 km/h (S-Mode)</td></tr>
+    <tr><td>Flight Time</td><td>~18 min</td></tr>
+    <tr><td>Range</td><td>10 km (O3+)</td></tr>
+    <tr><td>Video</td><td>4K / 60fps</td></tr>
+    <tr><td>Prop Size</td><td>4-inch ducted</td></tr>
+    <tr><td>Battery</td><td>2420mAh 4S LiPo</td></tr>
+  `;
+  const d = document.getElementById('de-desc-p');
+  if (d) d.textContent = 'לחץ על כל חלק ברחפן לקבלת מידע מפורט.\\n\\nClick any component on the drone to zoom in and see detailed technical specifications.';
+  deActive = null;
+}
+
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return r+','+g+','+b;
+}
+
+// Hover effects
+document.querySelectorAll('.de-hs').forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    const ring = el.querySelector('.de-hs-ring');
+    if (ring && el.dataset.part !== deActive) {
+      ring.style.opacity = '.5';
+    }
+  });
+  el.addEventListener('mouseleave', () => {
+    const ring = el.querySelector('.de-hs-ring');
+    if (ring && el.dataset.part !== deActive) {
+      ring.style.opacity = '0';
+    }
+  });
+});
+</script>
+"""
+
+# ---------------------------------------------------------------------------
 # Build the Gradio interface
 # ---------------------------------------------------------------------------
 def build_ui() -> gr.Blocks:
@@ -720,7 +1256,11 @@ def build_ui() -> gr.Blocks:
                         "// QUICK REFERENCE</div>")
                 gr.HTML(QUICK_REF_HTML)
 
-            # ── TAB 5: SYSTEM STATUS ─────────────────────────────────────
+            # ── TAB 5: DRONE EXPLORER ───────────────────────────────────
+            with gr.Tab("// Drone Explorer"):
+                gr.HTML(DRONE_EXPLORER_HTML)
+
+            # ── TAB 6: SYSTEM STATUS ─────────────────────────────────────
             with gr.Tab("// Status"):
                 gr.HTML("<div class='tac-header' style='padding:16px 0 8px'>"
                         "// SYSTEM STATUS</div>")
