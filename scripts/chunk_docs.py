@@ -1,13 +1,42 @@
-import json
-from pathlib import Path
+from __future__ import annotations
 
-import tiktoken
+import json
+import re
+from pathlib import Path
 
 INPUT_DIR = Path("data/raw")
 OUTPUT_PATH = Path("data/chunks/all_chunks.jsonl")
 CHUNK_TOKENS = 400
 OVERLAP_TOKENS = 80
 ENCODING_NAME = "cl100k_base"
+
+
+class _WordEncoder:
+    """Offline fallback tokenizer used when tiktoken's BPE data can't be
+    downloaded. Splits on whitespace-delimited pieces (each token keeps its
+    trailing whitespace, so decode() reconstructs the original text exactly).
+    Token counts approximate tiktoken closely enough for retrieval chunking."""
+
+    _pat = re.compile(r"\S+\s*|\s+")
+
+    def encode(self, text: str) -> list[str]:
+        return self._pat.findall(text)
+
+    def decode(self, tokens: list[str]) -> str:
+        return "".join(tokens)
+
+
+def get_encoder():
+    """Prefer tiktoken (accurate); fall back to an offline word tokenizer when
+    the BPE data can't be fetched, so chunking always works offline."""
+    try:
+        import tiktoken
+
+        return tiktoken.get_encoding(ENCODING_NAME)
+    except Exception as exc:
+        print(f"  [WARN] tiktoken unavailable ({exc.__class__.__name__}); "
+              f"using offline word tokenizer.")
+        return _WordEncoder()
 
 
 def detect_section(lines: list[str], char_offset: int, full_text: str) -> str:
@@ -20,7 +49,7 @@ def detect_section(lines: list[str], char_offset: int, full_text: str) -> str:
     return "General"
 
 
-def chunk_text(text: str, slug: str, enc: tiktoken.Encoding) -> list[dict]:
+def chunk_text(text: str, slug: str, enc) -> list[dict]:
     tokens = enc.encode(text)
     chunks = []
     idx = 0
@@ -49,7 +78,7 @@ def chunk_text(text: str, slug: str, enc: tiktoken.Encoding) -> list[dict]:
 
 
 def main():
-    enc = tiktoken.get_encoding(ENCODING_NAME)
+    enc = get_encoder()
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
 
     txt_files = sorted(INPUT_DIR.glob("*.txt"))
