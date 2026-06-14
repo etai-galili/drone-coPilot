@@ -17,7 +17,7 @@ call venv\Scripts\activate.bat
 
 echo.
 echo ╔══════════════════════════════════════════╗
-echo ║         AVATA CO-PILOT — LAUNCH          ║
+echo ║        PROFWORXML v.1 — LAUNCH           ║
 echo ╠══════════════════════════════════════════╣
 echo ║  URL: http://127.0.0.1:7860              ║
 echo ║  Press Ctrl+C to stop                    ║
