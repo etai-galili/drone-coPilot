@@ -9,7 +9,7 @@ CONFIG_PATH = Path("config.json")
 MODEL = {
     "repo_id": "Qwen/Qwen2.5-1.5B-Instruct-GGUF",
     "filename": "qwen2.5-1.5b-instruct-q4_k_m.gguf",
-    "label": "Qwen2.5 1.5B Instruct Q4_K_M",
+    "label": "ProfWorxML v.1",
     "size_gb": 1.0,
 }
 

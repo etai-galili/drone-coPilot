@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OWL EYES 2 — Diagnostic Tree</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #111827;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  overflow: hidden;
+  user-select: none;
+  color: #fff;
+}
+
+#toolbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 48px;
+  background: #1f2937;
+  border-bottom: 1px solid #374151;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 10px;
+  z-index: 100;
+}
+
+.toolbar-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #e5e7eb;
+  flex: 1;
+}
+.toolbar-title span { color: #4af0b0; }
+
+.btn {
+  background: #374151;
+  border: 1px solid #4b5563;
+  color: #d1d5db;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  font-family: inherit;
+  letter-spacing: 0.03em;
+}
+.btn:hover { background: #4b5563; color: #fff; }
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: 8px;
+  padding-left: 12px;
+  border-left: 1px solid #374151;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: #9ca3af;
+}
+.legend-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+#canvas-container {
+  position: fixed;
+  top: 48px; left: 0; right: 0; bottom: 0;
+  overflow: hidden;
+  cursor: grab;
+}
+#canvas-container.dragging { cursor: grabbing; }
+
+#canvas {
+  position: absolute;
+  top: 0; left: 0;
+  width: 4000px;
+  height: 2400px;
+  transform-origin: 0 0;
+}
+
+#svg-layer {
+  position: absolute;
+  top: 0; left: 0;
+  width: 4000px;
+  height: 2400px;
+  pointer-events: none;
+}
+
+#nodes-layer {
+  position: absolute;
+  top: 0; left: 0;
+  width: 4000px;
+  height: 2400px;
+}
+
+.node-card {
+  position: absolute;
+  width: 200px;
+  background: #1f2937;
+  border-radius: 8px;
+  border: 1px solid #374151;
+  cursor: pointer;
+  overflow: hidden;
+  transition: box-shadow 0.15s ease, opacity 0.22s ease, transform 0.22s ease;
+}
+.node-card:hover { box-shadow: 0 0 0 1.5px #4af0b0; }
+.node-card.selected { box-shadow: 0 0 0 2px #4af0b0, 0 0 12px rgba(74,240,176,0.2); }
+.node-card.entering {
+  opacity: 0 !important;
+  transform: translateY(-10px) !important;
+}
+
+.node-accent {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  border-radius: 8px 0 0 8px;
+}
+
+.node-body {
+  padding: 10px 10px 8px 14px;
+}
+.node-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-right: 52px;
+}
+.node-icon { font-size: 18px; line-height: 1; flex-shrink: 0; }
+.node-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f9fafb;
+  line-height: 1.3;
+}
+.node-footer {
+  font-size: 10px;
+  color: #6b7280;
+  margin-top: 6px;
+}
+.node-footer.tap-warn { color: #f59e0b; }
+.node-footer.tap-crit { color: #ef4444; }
+
+.status-badge {
+  position: absolute;
+  top: 9px; right: 8px;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  letter-spacing: 0.06em;
+}
+.badge-ok  { background: #064e3b; color: #10b981; }
+.badge-warn { background: #78350f; color: #f59e0b; }
+.badge-crit { background: #7f1d1d; color: #ef4444; }
+.accent-ok  { background: #10b981; }
+.accent-warn { background: #f59e0b; }
+.accent-crit { background: #ef4444; }
+
+/* ── Drawer ── */
+#drawer {
+  position: fixed;
+  top: 48px; right: 0;
+  width: 320px;
+  height: calc(100vh - 48px);
+  background: #1f2937;
+  border-left: 1px solid #374151;
+  transform: translateX(320px);
+  transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+}
+#drawer.open { transform: translateX(0); }
+
+.drawer-head {
+  padding: 16px;
+  border-bottom: 1px solid #374151;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.drawer-icon { font-size: 26px; line-height: 1; }
+.drawer-info { flex: 1; }
+.drawer-title { font-size: 15px; font-weight: 700; color: #f9fafb; }
+.drawer-badge { margin-top: 5px; }
+.drawer-close {
+  background: none; border: none;
+  color: #6b7280; font-size: 20px;
+  cursor: pointer; line-height: 1; padding: 0 2px;
+}
+.drawer-close:hover { color: #f9fafb; }
+
+.drawer-section {
+  padding: 12px 16px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+
+.drawer-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 16px 20px;
+}
+.drawer-list::-webkit-scrollbar { width: 4px; }
+.drawer-list::-webkit-scrollbar-track { background: transparent; }
+.drawer-list::-webkit-scrollbar-thumb { background: #374151; border-radius: 2px; }
+
+.problem-row {
+  padding: 10px 0;
+  border-bottom: 1px solid #2d3748;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.p-chevron { color: #4af0b0; font-size: 11px; margin-top: 2px; flex-shrink: 0; }
+.p-text { font-size: 12px; color: #d1d5db; flex: 1; line-height: 1.55; }
+.p-diag {
+  background: #111827;
+  border: 1px solid #374151;
+  color: #4af0b0;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: inherit;
+  margin-top: 1px;
+  flex-shrink: 0;
+  transition: background 0.1s;
+}
+.p-diag:hover { background: #1f2937; }
+
+/* ── Mini-map ── */
+#minimap {
+  position: fixed;
+  bottom: 16px; right: 16px;
+  width: 164px;
+  height: 100px;
+  background: #1a2235;
+  border: 1px solid #374151;
+  border-radius: 8px;
+  overflow: hidden;
+  z-index: 100;
+}
+#minimap-canvas { display: block; width: 100%; height: 100%; }
+
+/* ── Toast ── */
+#toast {
+  position: fixed;
+  bottom: 130px; right: 24px;
+  background: #10b981;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 6px;
+  z-index: 400;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.18s, transform 0.18s;
+  pointer-events: none;
+  letter-spacing: 0.04em;
+}
+#toast.show { opacity: 1; transform: translateY(0); }
+
+/* ── SVG dot animation ── */
+@keyframes flowDot {
+  from { stroke-dashoffset: 240; }
+  to   { stroke-dashoffset: 0; }
+}
+</style>
+</head>
+<body>
+
+<div id="toolbar">
+  <div class="toolbar-title">OWL EYES 2 <span>//</span> DIAGNOSTIC TREE</div>
+  <button class="btn" onclick="expandAll()">EXPAND ALL</button>
+  <button class="btn" onclick="collapseAll()">COLLAPSE ALL</button>
+  <button class="btn" onclick="resetView()">RESET VIEW</button>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div>OK</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>WARN</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>CRIT</div>
+  </div>
+</div>
+
+<div id="canvas-container">
+  <div id="canvas">
+    <svg id="svg-layer" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div id="nodes-layer"></div>
+  </div>
+</div>
+
+<div id="minimap"><canvas id="minimap-canvas"></canvas></div>
+
+<div id="drawer">
+  <div class="drawer-head">
+    <div class="drawer-icon" id="d-icon"></div>
+    <div class="drawer-info">
+      <div class="drawer-title" id="d-title"></div>
+      <div class="drawer-badge" id="d-badge"></div>
+    </div>
+    <button class="drawer-close" onclick="closeDrawer()">×</button>
+  </div>
+  <div class="drawer-section">COMMON FIELD ISSUES</div>
+  <div class="drawer-list" id="d-list"></div>
+</div>
+
+<div id="toast" id="toast">Copied!</div>
+
+<script>
+// ── Data ──────────────────────────────────────────────────────────────────────
+const TREE = {
+  id:"root", label:"OWL EYES 2", icon:"🚁", status:"OK",
+  children:[
+    { id:"power", label:"Power System", icon:"⚡", status:"OK",
+      children:[
+        { id:"battery", label:"Main Battery", icon:"🔋", status:"OK", isLeaf:true,
+          problems:["Cell voltage imbalance (>0.05V delta)","Rapid discharge >15%/min at hover","BMS fault — won't charge past 85%","Physical swelling — ground immediately","Temperature >60°C in flight"] },
+        { id:"esc", label:"ESC Units ×4", icon:"🔌", status:"WARN", isLeaf:true,
+          problems:["ESC desync on arm 2 — motor stutter","Thermal throttle above 75°C ambient","Calibration drift post-firmware update","One ESC silent — check signal wire","Ringing noise — check motor screws"] },
+        { id:"pdb", label:"Power Distribution Board", icon:"💡", status:"OK", isLeaf:true,
+          problems:["Voltage ripple >0.3V — check capacitors","Burnt solder on motor 3 pad","5V BEC sagging under payload load"] }
+      ]
+    },
+    { id:"sensors", label:"Sensor & Optics", icon:"📷", status:"OK",
+      children:[
+        { id:"camera", label:"4K Camera", icon:"🎥", status:"OK", isLeaf:true,
+          problems:["Rolling shutter at >60 km/h","Lens condensation above 85% humidity","Overheating after 40 min record","Focus motor not responding"] },
+        { id:"ir", label:"IR Sensor", icon:"🔍", status:"OK", isLeaf:true,
+          problems:["Calibration drift in heat >35°C","False positives in clutter terrain","Pixel dropout upper-left quadrant"] },
+        { id:"altimeter", label:"Radar Altimeter", icon:"📡", status:"OK", isLeaf:true,
+          problems:["Ground bounce over water","Interference from UHF comms","Reading freeze below 2m AGL"] }
+      ]
+    },
+    { id:"flight", label:"Flight Systems", icon:"🛩️", status:"OK",
+      children:[
+        { id:"motors", label:"Motors ×4", icon:"🌀", status:"WARN", isLeaf:true,
+          problems:["Motor 2 vibration — prop balance needed","Bearing noise above 8000 RPM (motor 3)","KV drift after 40h — remap required"] },
+        { id:"fc", label:"Flight Controller", icon:"🧠", status:"OK", isLeaf:true,
+          problems:["IMU calibration error post-crash","GPS fix lost — antenna connection","Compass interference from payload","Loop time spikes >500μs — retune PID"] },
+        { id:"props", label:"Propellers ×4", icon:"✈️", status:"CRIT", isLeaf:true,
+          problems:["Crack on arm 1 prop — do not fly","Tip erosion reducing efficiency 8%","Wrong rotation direction after swap"] }
+      ]
+    },
+    { id:"comms", label:"Comms & Nav", icon:"📶", status:"OK",
+      children:[
+        { id:"rc", label:"RC Link 900MHz", icon:"📻", status:"OK", isLeaf:true,
+          problems:["Failsafe at 800m — check antenna","Frequency conflict with local nets","Telemetry dropout in urban canyon"] },
+        { id:"gps", label:"GPS / GNSS", icon:"🛰️", status:"OK", isLeaf:true,
+          problems:["Cold start delay >90s in canyon","Multi-path error near structures","Spoofing alert — verify manually"] },
+        { id:"video", label:"Video Downlink 5.8G", icon:"🔗", status:"OK", isLeaf:true,
+          problems:["Latency >250ms on channel 6","5.8G congestion — switch channel","OSD overlay broken — UART config"] }
+      ]
+    },
+    { id:"airframe", label:"Airframe", icon:"🏗️", status:"OK",
+      children:[
+        { id:"frame", label:"Frame & Arms", icon:"🪨", status:"OK", isLeaf:true,
+          problems:["Hairline crack on arm 3","Prop guard deformation — drag increase","Loose vibration dampeners on FC"] },
+        { id:"gear", label:"Landing Gear", icon:"🔧", status:"OK", isLeaf:true,
+          problems:["Left strut spring fatigue","Retraction servo sticking at 15°","Contact switch false positive"] },
+        { id:"thermal", label:"Thermal Management", icon:"🌡️", status:"OK", isLeaf:true,
+          problems:["Heat sink detached from FC","Air intake blocked by debris","ESC cooling fin corrosion"] }
+      ]
+    }
+  ]
+};
+
+// ── Constants ─────────────────────────────────────────────────────────────────
+const NODE_W      = 200;
+const NODE_H_BR   = 64;   // branch node height
+const NODE_H_LF   = 56;   // leaf node height
+const LEVEL_GAP   = 150;  // vertical gap between levels
+const NODE_PAD    = 44;   // horizontal padding between sibling subtrees
+
+// ── State ─────────────────────────────────────────────────────────────────────
+const nodeMap = {};
+let panX = 0, panY = 0, zoom = 0.75;
+let isPanning = false, panSX, panSY, panSPX, panSPY;
+let activeLeaf = null;
+let animSeed = 0;
+
+const container  = document.getElementById('canvas-container');
+const canvasEl   = document.getElementById('canvas');
+const svgEl      = document.getElementById('svg-layer');
+const nodesEl    = document.getElementById('nodes-layer');
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+function initNode(node, parent) {
+  node.parent    = parent || null;
+  node.collapsed = false;
+  node.el        = null;
+  node.visible   = false;
+  nodeMap[node.id] = node;
+  if (node.children) node.children.forEach(c => initNode(c, node));
+}
+
+// ── Layout ────────────────────────────────────────────────────────────────────
+function nodeH(n) { return n.isLeaf ? NODE_H_LF : NODE_H_BR; }
+
+function subtreeW(node) {
+  if (node.collapsed || !node.children || !node.children.length)
+    return NODE_W + NODE_PAD;
+  return node.children.reduce((s, c) => s + subtreeW(c), 0);
+}
+
+function layoutNode(node, cx, y) {
+  node.x = cx - NODE_W / 2;
+  node.y = y;
+  if (node.collapsed || !node.children || !node.children.length) return;
+  const childY  = y + nodeH(node) + LEVEL_GAP;
+  const totalW  = subtreeW(node);
+  let   cursor  = cx - totalW / 2;
+  node.children.forEach(c => {
+    const w = subtreeW(c);
+    layoutNode(c, cursor + w / 2, childY);
+    cursor += w;
+  });
+}
+
+function doLayout() {
+  layoutNode(TREE, 2000, 80);
+}
+
+// ── Create node card element ──────────────────────────────────────────────────
+function sc(status) {
+  return { OK:'ok', WARN:'warn', CRIT:'crit' }[status] || 'ok';
+}
+
+function makeNodeEl(node) {
+  const s  = sc(node.status);
+  const h  = nodeH(node);
+  const div = document.createElement('div');
+  div.className = 'node-card';
+  div.id = 'nc-' + node.id;
+  div.style.height = h + 'px';
+
+  let footerClass = 'node-footer';
+  let footerText;
+  if (node.isLeaf) {
+    footerText = node.status === 'CRIT'
+      ? '⚠ TAP FOR ISSUES'
+      : node.status === 'WARN'
+        ? '▸ TAP FOR ISSUES'
+        : '▸ TAP FOR ISSUES';
+    if (node.status !== 'OK') footerClass += ' tap-' + node.status.toLowerCase();
+  } else {
+    footerText = `▸ ${node.children.length} subsystems`;
+  }
+
+  div.innerHTML = `
+    <div class="node-accent accent-${s}"></div>
+    <div class="node-body">
+      <div class="node-header">
+        <span class="node-icon">${node.icon}</span>
+        <span class="node-label">${node.label}</span>
+      </div>
+      <div class="${footerClass}" id="nf-${node.id}">${footerText}</div>
+    </div>
+    <div class="status-badge badge-${s}">${node.status}</div>
+  `;
+
+  div.addEventListener('click', e => { e.stopPropagation(); onNodeClick(node); });
+  return div;
+}
+
+// ── Render nodes ──────────────────────────────────────────────────────────────
+function renderNodes(node, parentExpanding) {
+  const fresh = !node.el;
+  if (!node.el) {
+    node.el = makeNodeEl(node);
+    nodesEl.appendChild(node.el);
+  }
+
+  node.el.style.left = node.x + 'px';
+  node.el.style.top  = node.y + 'px';
+
+  // Animate in if newly appearing
+  if (!node.visible || parentExpanding) {
+    node.el.classList.add('entering');
+    node.el.style.display = '';
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      node.el.classList.remove('entering');
+    }));
+    node.visible = true;
+  }
+
+  // Update branch footer arrow
+  if (!node.isLeaf && node.children) {
+    const f = document.getElementById('nf-' + node.id);
+    if (f) f.textContent = node.collapsed
+      ? `▸ ${node.children.length} subsystems`
+      : `▾ ${node.children.length} subsystems`;
+  }
+
+  if (!node.collapsed && node.children) {
+    node.children.forEach(c => renderNodes(c, fresh || parentExpanding));
+  } else if (node.children) {
+    hideTree(node);
+  }
+}
+
+function hideTree(node) {
+  node.children && node.children.forEach(c => {
+    if (c.el) c.el.style.display = 'none';
+    c.visible = false;
+    hideTree(c);
+  });
+}
+
+// ── Render connections ─────────────────────────────────────────────────────────
+function renderConnections() {
+  svgEl.innerHTML = '';
+  animSeed = 0;
+  drawConns(TREE);
+}
+
+function drawConns(node) {
+  if (node.collapsed || !node.children) return;
+  const px = node.x + NODE_W / 2;
+  const py = node.y + nodeH(node);
+  node.children.forEach((c, i) => {
+    const cx   = c.x + NODE_W / 2;
+    const cy   = c.y;
+    const midY = (py + cy) / 2;
+    const d    = `M${px},${py} C${px},${midY} ${cx},${midY} ${cx},${cy}`;
+
+    // Base line
+    const base = document.createElementNS('http://www.w3.org/2000/svg','path');
+    base.setAttribute('d', d);
+    base.setAttribute('fill','none');
+    base.setAttribute('stroke','#374151');
+    base.setAttribute('stroke-width','2');
+    svgEl.appendChild(base);
+
+    // Animated flowing dot
+    const dot  = document.createElementNS('http://www.w3.org/2000/svg','path');
+    dot.setAttribute('d', d);
+    dot.setAttribute('fill','none');
+    dot.setAttribute('stroke','#4af0b0');
+    dot.setAttribute('stroke-width','2.5');
+    dot.setAttribute('stroke-dasharray','6 220');
+    dot.setAttribute('stroke-linecap','round');
+    dot.setAttribute('opacity','0.75');
+    const delay = -((animSeed++ * 0.37) % 2.2);
+    dot.style.animation = `flowDot 2.2s linear ${delay}s infinite`;
+    svgEl.appendChild(dot);
+
+    drawConns(c);
+  });
+}
+
+// ── Full render cycle ─────────────────────────────────────────────────────────
+function render() {
+  doLayout();
+  renderNodes(TREE, false);
+  renderConnections();
+  updateMinimap();
+}
+
+// ── Node click ────────────────────────────────────────────────────────────────
+function onNodeClick(node) {
+  if (node.isLeaf) {
+    openDrawer(node);
+    document.querySelectorAll('.node-card').forEach(e => e.classList.remove('selected'));
+    if (node.el) node.el.classList.add('selected');
+    activeLeaf = node;
+  } else {
+    node.collapsed = !node.collapsed;
+    render();
+  }
+}
+
+// ── Drawer ────────────────────────────────────────────────────────────────────
+function openDrawer(node) {
+  const s = sc(node.status);
+  document.getElementById('d-icon').textContent  = node.icon;
+  document.getElementById('d-title').textContent = node.label;
+  document.getElementById('d-badge').innerHTML   =
+    `<span class="status-badge badge-${s}" style="position:static;display:inline-block">${node.status}</span>`;
+
+  const list = document.getElementById('d-list');
+  list.innerHTML = node.problems.map((p, i) => `
+    <div class="problem-row">
+      <span class="p-chevron">▸</span>
+      <span class="p-text">${p}</span>
+      <button class="p-diag" onclick="copyProblem(${i})">DIAGNOSE ↗</button>
+    </div>
+  `).join('');
+  list._node = node;
+
+  document.getElementById('drawer').classList.add('open');
+}
+
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('open');
+  if (activeLeaf && activeLeaf.el) activeLeaf.el.classList.remove('selected');
+  activeLeaf = null;
+}
+
+function copyProblem(i) {
+  const node = document.getElementById('d-list')._node;
+  if (!node) return;
+  const text = node.problems[i];
+  navigator.clipboard.writeText(text).catch(() => {});
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  clearTimeout(t._tid);
+  t._tid = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+// ── Pan & Zoom ────────────────────────────────────────────────────────────────
+function applyTransform() {
+  canvasEl.style.transform = `translate(${panX}px,${panY}px) scale(${zoom})`;
+  updateMinimap();
+}
+
+container.addEventListener('mousedown', e => {
+  const tgt = e.target;
+  if (tgt === container || tgt === canvasEl || tgt === svgEl || tgt === nodesEl) {
+    isPanning = true;
+    panSX = e.clientX; panSY = e.clientY;
+    panSPX = panX;     panSPY = panY;
+    container.classList.add('dragging');
+  }
+});
+
+window.addEventListener('mousemove', e => {
+  if (!isPanning) return;
+  panX = panSPX + (e.clientX - panSX);
+  panY = panSPY + (e.clientY - panSY);
+  applyTransform();
+});
+
+window.addEventListener('mouseup', () => {
+  isPanning = false;
+  container.classList.remove('dragging');
+});
+
+container.addEventListener('wheel', e => {
+  e.preventDefault();
+  const rect   = container.getBoundingClientRect();
+  const mx     = e.clientX - rect.left;
+  const my     = e.clientY - rect.top;
+  const factor = e.deltaY < 0 ? 1.1 : 0.909;
+  const nz     = Math.max(0.4, Math.min(2.5, zoom * factor));
+  panX = mx - (mx - panX) * (nz / zoom);
+  panY = my - (my - panY) * (nz / zoom);
+  zoom = nz;
+  applyTransform();
+}, { passive: false });
+
+// Touch
+let t0Dist = null, t0px = 0, t0py = 0, t0PX = 0, t0PY = 0;
+container.addEventListener('touchstart', e => {
+  if (e.touches.length === 1) {
+    isPanning = true;
+    panSX = e.touches[0].clientX; panSY = e.touches[0].clientY;
+    panSPX = panX; panSPY = panY;
+  } else if (e.touches.length === 2) {
+    isPanning = false;
+    const a = e.touches[0], b = e.touches[1];
+    t0Dist = Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY);
+    t0px   = (a.clientX + b.clientX) / 2;
+    t0py   = (a.clientY + b.clientY) / 2;
+    t0PX   = panX; t0PY = panY;
+  }
+}, { passive: true });
+
+container.addEventListener('touchmove', e => {
+  e.preventDefault();
+  if (e.touches.length === 1 && isPanning) {
+    panX = panSPX + (e.touches[0].clientX - panSX);
+    panY = panSPY + (e.touches[0].clientY - panSY);
+    applyTransform();
+  } else if (e.touches.length === 2 && t0Dist) {
+    const a    = e.touches[0], b = e.touches[1];
+    const dist = Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY);
+    const mx   = (a.clientX + b.clientX) / 2;
+    const my   = (a.clientY + b.clientY) / 2;
+    const rect = container.getBoundingClientRect();
+    const nz   = Math.max(0.4, Math.min(2.5, zoom * dist / t0Dist));
+    panX = (mx - rect.left) - ((mx - rect.left) - panX) * (nz / zoom);
+    panY = (my - rect.top)  - ((my - rect.top)  - panY) * (nz / zoom);
+    zoom = nz;
+    t0Dist = dist;
+    applyTransform();
+  }
+}, { passive: false });
+
+container.addEventListener('touchend', () => {
+  isPanning = false; t0Dist = null;
+}, { passive: true });
+
+// ── Toolbar actions ───────────────────────────────────────────────────────────
+function expandAll() {
+  (function walk(n) {
+    n.collapsed = false;
+    if (n.children) n.children.forEach(walk);
+  })(TREE);
+  render();
+}
+
+function collapseAll() {
+  TREE.children && TREE.children.forEach(c => {
+    c.collapsed = true;
+    c.children && c.children.forEach(cc => { cc.collapsed = true; });
+  });
+  render();
+}
+
+function resetView() {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  (function bb(n) {
+    x0 = Math.min(x0, n.x);      y0 = Math.min(y0, n.y);
+    x1 = Math.max(x1, n.x+NODE_W); y1 = Math.max(y1, n.y + nodeH(n));
+    if (!n.collapsed && n.children) n.children.forEach(bb);
+  })(TREE);
+  const pad = 60;
+  const tw  = x1 - x0 + pad * 2;
+  const th  = y1 - y0 + pad * 2;
+  const cw  = container.clientWidth;
+  const ch  = container.clientHeight;
+  zoom = Math.max(0.4, Math.min(2.5, Math.min(cw / tw, ch / th) * 0.92));
+  panX = (cw - (x1 - x0) * zoom) / 2 - x0 * zoom;
+  panY = (ch - (y1 - y0) * zoom) / 2 - y0 * zoom;
+  applyTransform();
+}
+
+// ── Mini-map ──────────────────────────────────────────────────────────────────
+function updateMinimap() {
+  const mc  = document.getElementById('minimap-canvas');
+  const ctx = mc.getContext('2d');
+  const mw  = mc.offsetWidth  || 164;
+  const mh  = mc.offsetHeight || 100;
+  if (mc.width !== mw)  mc.width  = mw;
+  if (mc.height !== mh) mc.height = mh;
+
+  ctx.clearRect(0,0,mw,mh);
+  ctx.fillStyle = '#111827';
+  ctx.fillRect(0,0,mw,mh);
+
+  // Scale to fit 4000×2400 canvas into minimap
+  const ms = Math.min(mw / 4000, mh / 2400);
+
+  const STATUS_COLOR = { OK:'#10b981', WARN:'#f59e0b', CRIT:'#ef4444' };
+
+  function drawMini(n) {
+    const nx = n.x * ms, ny = n.y * ms;
+    const nw = NODE_W * ms, nh = nodeH(n) * ms;
+    ctx.fillStyle = '#1f2937';
+    ctx.strokeStyle = STATUS_COLOR[n.status] || '#374151';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.rect(nx, ny, nw, nh);
+    ctx.fill(); ctx.stroke();
+    if (!n.collapsed && n.children) n.children.forEach(drawMini);
+  }
+  drawMini(TREE);
+
+  // Viewport rect
+  const rect = container.getBoundingClientRect();
+  const vx = (-panX / zoom) * ms;
+  const vy = (-panY / zoom) * ms;
+  const vw = (rect.width  / zoom) * ms;
+  const vh = (rect.height / zoom) * ms;
+  ctx.strokeStyle = '#4af0b0';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(vx, vy, vw, vh);
+}
+
+// ── Bootstrap ─────────────────────────────────────────────────────────────────
+initNode(TREE, null);
+
+// Start with level-1 branches collapsed
+TREE.children && TREE.children.forEach(c => { c.collapsed = true; });
+
+doLayout();
+renderNodes(TREE, false);
+renderConnections();
+
+// Fit into view after layout
+setTimeout(() => {
+  resetView();
+  updateMinimap();
+}, 60);
+
+console.log('✅ SESSION 2 COMPLETE — tree.html ready');
+</script>
+</body>
+</html>

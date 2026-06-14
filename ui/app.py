@@ -12,6 +12,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 CONFIG_PATH = Path("config.json")
 
+# Branded model name shown across the UI (overrides the underlying GGUF label)
+MODEL_DISPLAY_NAME = "ProfWorxML v.1"
+
 # ---------------------------------------------------------------------------
 # Tactical CSS
 # ---------------------------------------------------------------------------
@@ -19,20 +22,20 @@ TACTICAL_CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root {
-  --bg-base:       #080C10;
-  --bg-surface:    #0D1117;
-  --bg-card:       #161B22;
-  --bg-card-hover: #1C2330;
-  --border:        #30363D;
-  --border-accent: #00FF94;
-  --text-primary:  #E6EDF3;
-  --text-secondary:#8B949E;
-  --text-muted:    #484F58;
-  --accent-green:  #00FF94;
-  --accent-amber:  #FFB800;
-  --danger:        #FF4444;
-  --warning:       #FF8C00;
-  --success:       #00FF94;
+  --bg-base:       #0A0D11;
+  --bg-surface:    #0F141A;
+  --bg-card:       #151B22;
+  --bg-card-hover: #1C2530;
+  --border:        #283039;
+  --border-accent: #A6CE39;
+  --text-primary:  #EDF1F3;
+  --text-secondary:#93A0A8;
+  --text-muted:    #5A636C;
+  --accent-green:  #A6CE39;
+  --accent-amber:  #F0B53A;
+  --danger:        #F0524A;
+  --warning:       #F08A2E;
+  --success:       #A6CE39;
   --font-mono:     'JetBrains Mono', monospace;
   --font-ui:       'Inter', sans-serif;
   --radius:        6px;
@@ -92,7 +95,7 @@ input[type="text"], input[type="number"], textarea, .input-wrap textarea {
 input:focus, textarea:focus {
   border-color: var(--border-accent) !important;
   outline: none !important;
-  box-shadow: 0 0 0 3px rgba(0,255,148,0.08) !important;
+  box-shadow: 0 0 0 3px rgba(166,206,57,0.08) !important;
 }
 
 /* Primary buttons */
@@ -110,8 +113,8 @@ button.primary, .btn-primary, button[class*="primary"] {
   transition: background 0.15s, box-shadow 0.15s !important;
 }
 button.primary:hover, .btn-primary:hover {
-  background: rgba(0,255,148,0.08) !important;
-  box-shadow: 0 0 12px rgba(0,255,148,0.2) !important;
+  background: rgba(166,206,57,0.08) !important;
+  box-shadow: 0 0 12px rgba(166,206,57,0.2) !important;
 }
 
 /* Secondary buttons */
@@ -182,8 +185,8 @@ summary { color: var(--text-secondary) !important; font-size: 12px !important; p
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 .tac-card:hover {
-  border-color: rgba(0,255,148,0.35);
-  box-shadow: 0 0 16px rgba(0,255,148,0.06);
+  border-color: rgba(166,206,57,0.35);
+  box-shadow: 0 0 16px rgba(166,206,57,0.06);
 }
 .tac-card h3 {
   font-family: var(--font-mono);
@@ -219,7 +222,7 @@ summary { color: var(--text-secondary) !important; font-size: 12px !important; p
   font-weight: 700;
   letter-spacing: 0.1em;
 }
-.sev-low      { background: rgba(0,255,148,0.15); color: var(--accent-green); border: 1px solid var(--accent-green); }
+.sev-low      { background: rgba(166,206,57,0.15); color: var(--accent-green); border: 1px solid var(--accent-green); }
 .sev-medium   { background: rgba(255,184,0,0.12); color: var(--accent-amber); border: 1px solid var(--accent-amber); }
 .sev-high     { background: rgba(255,140,0,0.12); color: var(--warning); border: 1px solid var(--warning); }
 .sev-critical { background: rgba(255,68,68,0.15); color: var(--danger); border: 1px solid var(--danger); }
@@ -287,7 +290,7 @@ def _answer_html(answer: str, severity: str, latency_ms: int, sources: list[str]
   <div style='font-size:14px;line-height:1.7;color:var(--text-primary);white-space:pre-wrap'>{answer}</div>
   {sources_html}
   <div class='footer-bar' style='margin-top:12px'>
-    LATENCY: {latency_ms}ms &nbsp;|&nbsp; MODEL: {model_label or 'N/A'}
+    LATENCY: {latency_ms}ms &nbsp;|&nbsp; MODEL: {MODEL_DISPLAY_NAME}
     &nbsp;|&nbsp; SEVERITY: {severity.upper()}
   </div>
 </div>
@@ -357,7 +360,7 @@ def _status_badge(label: str) -> str:
     return f"""
 <div style='display:inline-flex;align-items:center;gap:8px;padding:8px 16px;
             border:1px solid {color};border-radius:6px;
-            background:rgba({"0,255,148" if is_ready else "255,68,68"},0.06)'>
+            background:rgba({"166,206,57" if is_ready else "255,68,68"},0.06)'>
   <span class='status-dot {dot}'></span>
   <span style='font-family:var(--font-mono);font-size:12px;font-weight:700;
                letter-spacing:0.12em;color:{color}'>{label}</span>
@@ -485,7 +488,6 @@ def _system_status_html() -> str:
     if CONFIG_PATH.exists():
         try:
             cfg = json.loads(CONFIG_PATH.read_text())
-            model_label = cfg.get("model_label", "Unknown")
             backend = cfg.get("backend", "CPU")
             model_path = cfg.get("model_path", "")
             model_size = ""
@@ -493,7 +495,7 @@ def _system_status_html() -> str:
                 size_mb = Path(model_path).stat().st_size / (1024 ** 2)
                 model_size = f"{size_mb:.0f} MB"
             llm_dot = "dot-green"
-            llm_status = f"Loaded: {model_label} | {model_size} | {backend}"
+            llm_status = f"Loaded: {MODEL_DISPLAY_NAME} | {model_size} | {backend}"
         except Exception as e:
             llm_dot = "dot-amber"
             llm_status = f"Config error: {e}"
@@ -533,7 +535,7 @@ def _system_status_html() -> str:
   {row("dot-green", "RAM Usage", f"{ram_used:.1f} GB used / {ram_total:.1f} GB total")}
   {row("dot-green" if avg_lat else "dot-grey", "Avg Latency", lat_str)}
   <div class='footer-bar' style='margin-top:8px'>
-    AVATA CO-PILOT v1.0 &nbsp;|&nbsp; OFFLINE &nbsp;|&nbsp; DJI AVATA KNOWLEDGE BASE
+    PROFWORXML v.1 &nbsp;|&nbsp; OFFLINE &nbsp;|&nbsp; DJI AVATA KNOWLEDGE BASE
   </div>
 </div>
 """
@@ -595,19 +597,17 @@ def run_self_test() -> str:
 # Build the Gradio interface
 # ---------------------------------------------------------------------------
 def build_ui() -> gr.Blocks:
-    with gr.Blocks(css=TACTICAL_CSS, title="AVATA CO-PILOT") as demo:
+    with gr.Blocks(css=TACTICAL_CSS, title="ProfWorxML v.1") as demo:
 
         # ── Header ──────────────────────────────────────────────────────
         gr.HTML("""
-<div style='padding:20px 24px 12px;border-bottom:1px solid var(--border);
+<div style='padding:20px 24px 14px;border-bottom:1px solid var(--border);
             display:flex;align-items:center;gap:16px'>
-  <div>
-    <div style='font-family:var(--font-mono);font-size:18px;font-weight:500;
-                color:var(--accent-green);letter-spacing:0.12em'>AVATA CO-PILOT</div>
-    <div style='font-family:var(--font-mono);font-size:10px;color:var(--text-muted);
-                letter-spacing:0.1em;margin-top:2px'>
-      DJI AVATA FIELD ASSISTANT &nbsp;|&nbsp; OFFLINE &nbsp;|&nbsp; v1.0
-    </div>
+  <div style='display:flex;align-items:baseline;gap:10px'>
+    <span style='font-family:var(--font-ui);font-size:22px;font-weight:800;
+                 color:var(--text-primary);letter-spacing:0.04em;text-transform:uppercase'>ProfWorx</span>
+    <span style='font-family:var(--font-mono);font-size:13px;font-weight:600;
+                 color:var(--accent-green);letter-spacing:0.1em'>ML v.1</span>
   </div>
   <div style='margin-left:auto;display:flex;gap:6px;align-items:center'>
     <span class='status-dot dot-green'></span>
