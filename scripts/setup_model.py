@@ -42,11 +42,12 @@ def download_model() -> Path:
         return target
 
     print(f"  Downloading {MODEL['label']} (~{MODEL['size_gb']} GB)...")
+    # Note: local_dir_use_symlinks is deprecated/removed in recent
+    # huggingface_hub; files are copied into local_dir by default now.
     path = hf_hub_download(
         repo_id=MODEL["repo_id"],
         filename=MODEL["filename"],
         local_dir=str(MODELS_DIR),
-        local_dir_use_symlinks=False,
     )
     return Path(path)
 
