@@ -18,28 +18,34 @@ echo "[OK] Python $PY_VER"
 
 # Virtual environment
 if [ ! -d "venv" ]; then
-  echo "[1/5] Creating virtual environment..."
+  echo "[1/6] Creating virtual environment..."
   "$PYTHON" -m venv venv
 else
-  echo "[1/5] Virtual environment already exists."
+  echo "[1/6] Virtual environment already exists."
 fi
 
 # Activate
 # shellcheck disable=SC1091
 source venv/bin/activate
 
-echo "[2/5] Installing dependencies..."
+echo "[2/6] Installing dependencies..."
 pip install --upgrade pip --quiet
+# On Apple Silicon, build llama-cpp-python with Metal GPU support for fast inference
+if [ "$(uname -s)" = "Darwin" ] && [ "$(uname -m)" = "arm64" ]; then
+  echo "      Detected Apple Silicon — enabling Metal GPU for llama-cpp-python..."
+  CMAKE_ARGS="-DGGML_METAL=on" pip install llama-cpp-python --quiet --force-reinstall --no-cache-dir 2>/dev/null || \
+  pip install llama-cpp-python --quiet
+fi
 pip install -r requirements.txt --quiet
 echo "      Dependencies installed."
 
-echo "[3/5] Fetching documentation..."
+echo "[3/6] Fetching documentation..."
 python scripts/fetch_docs.py
 
-echo "[4/5] Chunking documents..."
+echo "[4/6] Chunking documents..."
 python scripts/chunk_docs.py
 
-echo "[5/5] Building vector index..."
+echo "[5/6] Building vector index..."
 python scripts/build_index.py
 
 echo ""
