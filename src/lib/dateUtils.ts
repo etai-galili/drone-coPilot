@@ -54,15 +54,16 @@ export function getPeriodKey(date: Date = new Date()): string {
   return `p${getPeriodIndex(date)}`;
 }
 
-export function getPeriodRange(periodKey: string): { start: string; end: string } {
-  const index = Number(periodKey.slice(1));
-  const start = new Date(BIWEEK_ANCHOR + index * 14 * MS_PER_DAY);
-  const end = new Date(BIWEEK_ANCHOR + (index * 14 + 13) * MS_PER_DAY);
-  return { start: toISODate(start), end: toISODate(end) };
-}
+export type MonthHalf = 1 | 2;
 
-export function getCurrentPeriod(): { key: string; start: string; end: string } {
-  const key = getPeriodKey();
-  const { start, end } = getPeriodRange(key);
-  return { key, start, end };
+export function getMonthHalfRange(
+  monthKey: string,
+  half: MonthHalf,
+): { start: string; end: string } {
+  const [y, m] = monthKey.split("-").map(Number);
+  if (half === 1) {
+    return { start: toISODate(new Date(y, m - 1, 1)), end: toISODate(new Date(y, m - 1, 15)) };
+  }
+  const lastDay = new Date(y, m, 0).getDate();
+  return { start: toISODate(new Date(y, m - 1, 16)), end: toISODate(new Date(y, m - 1, lastDay)) };
 }

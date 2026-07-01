@@ -1,38 +1,22 @@
-export interface VoyageEntry {
+export interface TripEntry {
   id: string;
   date: string; // YYYY-MM-DD
   departureTime: string; // HH:MM
   returnTime: string; // HH:MM
-  purpose: string;
+  missionType: string;
   crewNames: string[];
+  distanceNm: string;
+  fuelConsumed: string;
+  fuelRemaining: string;
   cleanupDone: boolean;
   refuelNeeded: boolean;
-  fuelRemaining: string;
   notes: string;
   createdAt: string;
 }
 
-export interface ChecklistItemDef {
-  id: string;
-  label: string;
-}
-
-export interface ChecklistItemState {
-  id: string;
-  checked: boolean;
-}
-
-export interface MonthlyEquipmentReport {
-  monthKey: string; // YYYY-MM
-  items: ChecklistItemState[];
-  updatedAt: string;
-}
-
-export interface BiweeklyChecklistReport {
-  periodKey: string;
-  periodStart: string;
-  periodEnd: string;
-  items: ChecklistItemState[];
+export interface MonthlyOverviewEntry {
+  done: boolean;
+  fileLink: string;
   updatedAt: string;
 }
 

@@ -1,26 +1,20 @@
 import { useState } from "react";
-import { TopNav } from "./components/TopNav";
-import { VoyageLog } from "./modules/VoyageLog/VoyageLog";
-import { MonthlyEquipmentReport } from "./modules/MonthlyEquipment/MonthlyEquipmentReport";
-import { BiweeklyChecklist } from "./modules/BiweeklyChecklist/BiweeklyChecklist";
+import { Sidebar } from "./components/Sidebar";
+import { Trip } from "./modules/Trip/Trip";
+import { MonthlyOverview } from "./modules/MonthlyOverview/MonthlyOverview";
 import { StatusHandover } from "./modules/StatusHandover/StatusHandover";
 
-export type ModuleKey =
-  | "voyage-log"
-  | "monthly-equipment"
-  | "biweekly-checklist"
-  | "status-handover";
+export type ModuleKey = "trip" | "monthly-overview" | "status-handover";
 
 function App() {
-  const [active, setActive] = useState<ModuleKey>("voyage-log");
+  const [active, setActive] = useState<ModuleKey>("trip");
 
   return (
-    <div className="min-h-screen bg-slate-100">
-      <TopNav active={active} onSelect={setActive} />
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
-        {active === "voyage-log" && <VoyageLog />}
-        {active === "monthly-equipment" && <MonthlyEquipmentReport />}
-        {active === "biweekly-checklist" && <BiweeklyChecklist />}
+    <div className="flex min-h-screen flex-col bg-slate-100 md:flex-row-reverse">
+      <Sidebar active={active} onSelect={setActive} />
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6">
+        {active === "trip" && <Trip />}
+        {active === "monthly-overview" && <MonthlyOverview />}
         {active === "status-handover" && <StatusHandover />}
       </main>
     </div>

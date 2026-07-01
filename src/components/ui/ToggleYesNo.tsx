@@ -1,9 +1,13 @@
 export function ToggleYesNo({
   value,
   onChange,
+  yesLabel = "כן",
+  noLabel = "לא",
 }: {
   value: boolean;
   onChange: (value: boolean) => void;
+  yesLabel?: string;
+  noLabel?: string;
 }) {
   return (
     <div className="inline-flex overflow-hidden rounded-lg border border-slate-300">
@@ -11,10 +15,10 @@ export function ToggleYesNo({
         type="button"
         onClick={() => onChange(true)}
         className={`px-4 py-2 text-sm font-semibold transition ${
-          value ? "bg-cyan-700 text-white" : "bg-white text-slate-600 hover:bg-slate-50"
+          value ? "bg-emerald-600 text-white" : "bg-white text-slate-600 hover:bg-slate-50"
         }`}
       >
-        כן
+        {yesLabel}
       </button>
       <button
         type="button"
@@ -23,7 +27,7 @@ export function ToggleYesNo({
           !value ? "bg-slate-700 text-white" : "bg-white text-slate-600 hover:bg-slate-50"
         }`}
       >
-        לא
+        {noLabel}
       </button>
     </div>
   );

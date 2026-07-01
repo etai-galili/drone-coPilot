@@ -1,35 +1,40 @@
 import { useMemo, useState } from "react";
-import { Plus, Trash2, X } from "lucide-react";
+import { Fuel, Gauge, Plus, Trash2, X } from "lucide-react";
 import { Card, CardHeader } from "../../components/ui/Card";
 import { Field, TextArea, TextInput } from "../../components/ui/Field";
 import { Button } from "../../components/ui/Button";
 import { ToggleYesNo } from "../../components/ui/ToggleYesNo";
+import { StatCard } from "../../components/ui/StatCard";
+import { MapPanel } from "../../components/MapPanel";
 import { generateId, useLocalStorage } from "../../lib/storage";
-import { formatDateHe, todayISO } from "../../lib/dateUtils";
-import type { VoyageEntry } from "../../types";
+import { formatDateHe, toISODate, todayISO } from "../../lib/dateUtils";
+import type { TripEntry } from "../../types";
 
-const STORAGE_KEY = "vessel-mng:voyage-log";
+const STORAGE_KEY = "vessel-mng:trip-log";
 
-function emptyDraft(): Omit<VoyageEntry, "id" | "createdAt"> {
+function emptyDraft(): Omit<TripEntry, "id" | "createdAt"> {
   return {
     date: todayISO(),
     departureTime: "",
     returnTime: "",
-    purpose: "",
+    missionType: "",
     crewNames: [],
+    distanceNm: "",
+    fuelConsumed: "",
+    fuelRemaining: "",
     cleanupDone: false,
     refuelNeeded: false,
-    fuelRemaining: "",
     notes: "",
   };
 }
 
-export function VoyageLog() {
-  const [entries, setEntries] = useLocalStorage<VoyageEntry[]>(STORAGE_KEY, []);
+export function Trip() {
+  const [entries, setEntries] = useLocalStorage<TripEntry[]>(STORAGE_KEY, []);
   const [draft, setDraft] = useState(emptyDraft());
   const [crewInput, setCrewInput] = useState("");
   const [fromFilter, setFromFilter] = useState("");
   const [toFilter, setToFilter] = useState("");
+  const [returnDraft, setReturnDraft] = useState("");
 
   function addCrewName() {
     const name = crewInput.trim();
@@ -43,8 +48,8 @@ export function VoyageLog() {
   }
 
   function submit() {
-    if (!draft.date || !draft.purpose) return;
-    const entry: VoyageEntry = {
+    if (!draft.date || !draft.missionType) return;
+    const entry: TripEntry = {
       ...draft,
       id: generateId(),
       createdAt: new Date().toISOString(),
@@ -57,17 +62,86 @@ export function VoyageLog() {
     setEntries((prev) => prev.filter((e) => e.id !== id));
   }
 
+  const sorted = useMemo(
+    () => [...entries].sort((a, b) => (a.date < b.date ? 1 : -1)),
+    [entries],
+  );
+
+  const activeTrip = useMemo(
+    () => sorted.find((e) => e.departureTime && !e.returnTime),
+    [sorted],
+  );
+
+  function markReturned() {
+    if (!activeTrip || !returnDraft) return;
+    setEntries((prev) =>
+      prev.map((e) => (e.id === activeTrip.id ? { ...e, returnTime: returnDraft } : e)),
+    );
+    setReturnDraft("");
+  }
+
   const filtered = useMemo(() => {
-    return entries
+    return sorted
       .filter((e) => (fromFilter ? e.date >= fromFilter : true))
-      .filter((e) => (toFilter ? e.date <= toFilter : true))
-      .sort((a, b) => (a.date < b.date ? 1 : -1));
-  }, [entries, fromFilter, toFilter]);
+      .filter((e) => (toFilter ? e.date <= toFilter : true));
+  }, [sorted, fromFilter, toFilter]);
+
+  const last7 = useMemo(() => {
+    const cutoff = toISODate(new Date(Date.now() - 6 * 24 * 60 * 60 * 1000));
+    return entries.filter((e) => e.date >= cutoff);
+  }, [entries]);
+
+  const totalDistance = last7.reduce((sum, e) => sum + (Number(e.distanceNm) || 0), 0);
+  const totalFuel = last7.reduce((sum, e) => sum + (Number(e.fuelConsumed) || 0), 0);
 
   return (
     <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <Card className="lg:col-span-2">
+          <CardHeader title="מסלול פעיל" subtitle="ההפלגה האחרונה שטרם הסתיימה" />
+          <div className="p-4 sm:p-5">
+            <MapPanel
+              isActive={!!activeTrip}
+              missionType={activeTrip?.missionType}
+              departureTime={activeTrip?.departureTime}
+              eta={activeTrip?.returnTime}
+            />
+            {activeTrip && (
+              <div className="mt-4 flex flex-wrap items-end gap-2">
+                <Field label="עדכון שעת חזרה בפועל">
+                  <TextInput
+                    type="time"
+                    value={returnDraft}
+                    onChange={(e) => setReturnDraft(e.target.value)}
+                    className="w-auto"
+                  />
+                </Field>
+                <Button variant="secondary" onClick={markReturned} disabled={!returnDraft}>
+                  סמן כשבה לנמל
+                </Button>
+              </div>
+            )}
+          </div>
+        </Card>
+
+        <div className="flex flex-col gap-4">
+          <StatCard
+            icon={<Gauge className="size-5" />}
+            label="מרחק כולל (7 ימים)"
+            value={totalDistance.toLocaleString("he-IL")}
+            unit="נ״מ"
+          />
+          <StatCard
+            icon={<Fuel className="size-5" />}
+            label="דלק שנצרך (7 ימים)"
+            value={totalFuel.toLocaleString("he-IL")}
+            unit="ליטר"
+          />
+        </div>
+      </div>
+
       <Card>
-        <CardHeader title="יומן הפלגות" subtitle="רישום הפלגה חדשה" />
+        <CardHeader title="יומן הפלגה חדש" subtitle="Trip — רישום הפלגה חדשה" />
         <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-3">
           <Field label="תאריך" required>
             <TextInput
@@ -91,11 +165,30 @@ export function VoyageLog() {
             />
           </Field>
 
-          <Field label="מטרת ההפלגה" required>
+          <Field label="סוג משימה" required>
             <TextInput
-              value={draft.purpose}
-              onChange={(e) => setDraft((d) => ({ ...d, purpose: e.target.value }))}
+              value={draft.missionType}
+              onChange={(e) => setDraft((d) => ({ ...d, missionType: e.target.value }))}
               placeholder="לדוגמה: אימון ניווט, סיור שגרתי..."
+            />
+          </Field>
+
+          <Field label="מרחק (נ״מ)">
+            <TextInput
+              type="number"
+              inputMode="decimal"
+              value={draft.distanceNm}
+              onChange={(e) => setDraft((d) => ({ ...d, distanceNm: e.target.value }))}
+              placeholder="0"
+            />
+          </Field>
+          <Field label="דלק שנצרך (ליטר)">
+            <TextInput
+              type="number"
+              inputMode="decimal"
+              value={draft.fuelConsumed}
+              onChange={(e) => setDraft((d) => ({ ...d, fuelConsumed: e.target.value }))}
+              placeholder="0"
             />
           </Field>
 
@@ -103,7 +196,7 @@ export function VoyageLog() {
             <TextInput
               value={draft.fuelRemaining}
               onChange={(e) => setDraft((d) => ({ ...d, fuelRemaining: e.target.value }))}
-              placeholder='לדוגמה: 75%, 120 ליטר'
+              placeholder="לדוגמה: 75%, 120 ליטר"
             />
           </Field>
 
@@ -173,7 +266,7 @@ export function VoyageLog() {
           </div>
         </div>
         <div className="flex justify-end border-t border-slate-100 p-4 sm:p-5">
-          <Button onClick={submit} disabled={!draft.date || !draft.purpose}>
+          <Button onClick={submit} disabled={!draft.date || !draft.missionType}>
             שמור הפלגה
           </Button>
         </div>
@@ -181,7 +274,7 @@ export function VoyageLog() {
 
       <Card>
         <CardHeader
-          title="היסטוריית הפלגות"
+          title="הפלגות אחרונות"
           subtitle={`${filtered.length} רשומות`}
           action={
             <div className="flex flex-wrap items-center gap-2">
@@ -213,16 +306,15 @@ export function VoyageLog() {
           }
         />
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[720px] text-right text-sm">
+          <table className="w-full min-w-[780px] text-right text-sm">
             <thead className="bg-slate-50 text-slate-500">
               <tr>
                 <th className="px-4 py-3 font-semibold">תאריך</th>
+                <th className="px-4 py-3 font-semibold">סוג משימה</th>
                 <th className="px-4 py-3 font-semibold">יציאה - חזרה</th>
-                <th className="px-4 py-3 font-semibold">מטרה</th>
-                <th className="px-4 py-3 font-semibold">משיטים</th>
-                <th className="px-4 py-3 font-semibold">חיסול</th>
-                <th className="px-4 py-3 font-semibold">תדלוק</th>
-                <th className="px-4 py-3 font-semibold">דלק שנותר</th>
+                <th className="px-4 py-3 font-semibold">מרחק (נ״מ)</th>
+                <th className="px-4 py-3 font-semibold">דלק שנצרך (L)</th>
+                <th className="px-4 py-3 font-semibold">מפליגים</th>
                 <th className="px-4 py-3 font-semibold"></th>
               </tr>
             </thead>
@@ -230,18 +322,13 @@ export function VoyageLog() {
               {filtered.map((e) => (
                 <tr key={e.id} className="hover:bg-slate-50">
                   <td className="px-4 py-3 font-medium text-slate-800">{formatDateHe(e.date)}</td>
-                  <td className="px-4 py-3 text-slate-600">
-                    {e.departureTime || "--"} - {e.returnTime || "--"}
+                  <td className="px-4 py-3 text-slate-600">{e.missionType}</td>
+                  <td dir="ltr" className="px-4 py-3 text-right text-slate-600">
+                    {e.departureTime || "--"} - {e.returnTime || "בהפלגה"}
                   </td>
-                  <td className="px-4 py-3 text-slate-600">{e.purpose}</td>
+                  <td className="px-4 py-3 text-slate-600">{e.distanceNm || "--"}</td>
+                  <td className="px-4 py-3 text-slate-600">{e.fuelConsumed || "--"}</td>
                   <td className="px-4 py-3 text-slate-600">{e.crewNames.join(", ") || "--"}</td>
-                  <td className="px-4 py-3">
-                    <StatusPill positive={e.cleanupDone} yesLabel="בוצע" noLabel="לא בוצע" />
-                  </td>
-                  <td className="px-4 py-3">
-                    <StatusPill positive={e.refuelNeeded} yesLabel="נדרש" noLabel="לא נדרש" invert />
-                  </td>
-                  <td className="px-4 py-3 text-slate-600">{e.fuelRemaining || "--"}</td>
                   <td className="px-4 py-3">
                     <button
                       onClick={() => removeEntry(e.id)}
@@ -255,7 +342,7 @@ export function VoyageLog() {
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-10 text-center text-slate-400">
+                  <td colSpan={7} className="px-4 py-10 text-center text-slate-400">
                     אין רשומות להצגה
                   </td>
                 </tr>
@@ -265,28 +352,5 @@ export function VoyageLog() {
         </div>
       </Card>
     </div>
-  );
-}
-
-function StatusPill({
-  positive,
-  yesLabel,
-  noLabel,
-  invert,
-}: {
-  positive: boolean;
-  yesLabel: string;
-  noLabel: string;
-  invert?: boolean;
-}) {
-  const isGood = invert ? !positive : positive;
-  return (
-    <span
-      className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-        isGood ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
-      }`}
-    >
-      {positive ? yesLabel : noLabel}
-    </span>
   );
 }
