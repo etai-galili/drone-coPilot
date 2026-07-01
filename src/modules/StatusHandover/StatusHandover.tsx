@@ -8,7 +8,9 @@ import { formatDateHe, getPeriodKey, todayISO } from "../../lib/dateUtils";
 import type { StatusHandoverEntry } from "../../types";
 import { PrintableHandover } from "./PrintableHandover";
 
-const STORAGE_KEY = "vessel-mng:status-handover";
+function storageKey(vesselId: string) {
+  return `vessel-mng:${vesselId}:status-handover`;
+}
 
 function emptyDraft(): Omit<StatusHandoverEntry, "id" | "createdAt" | "periodKey"> {
   return {
@@ -23,8 +25,8 @@ function emptyDraft(): Omit<StatusHandoverEntry, "id" | "createdAt" | "periodKey
   };
 }
 
-export function StatusHandover() {
-  const [entries, setEntries] = useLocalStorage<StatusHandoverEntry[]>(STORAGE_KEY, []);
+export function StatusHandover({ vesselId }: { vesselId: string }) {
+  const [entries, setEntries] = useLocalStorage<StatusHandoverEntry[]>(storageKey(vesselId), []);
   const [draft, setDraft] = useState(emptyDraft());
   const [printEntry, setPrintEntry] = useState<StatusHandoverEntry | null>(null);
 

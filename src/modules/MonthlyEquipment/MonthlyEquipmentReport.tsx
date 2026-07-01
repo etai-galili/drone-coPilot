@@ -6,15 +6,20 @@ import { getMonthKey, getMonthLabelHe } from "../../lib/dateUtils";
 import { MONTHLY_EQUIPMENT_ITEMS } from "../../data/checklistItems";
 import type { MonthlyEquipmentReport as ReportType } from "../../types";
 
-const STORAGE_KEY = "vessel-mng:monthly-equipment";
+function storageKey(vesselId: string) {
+  return `vessel-mng:${vesselId}:monthly-equipment`;
+}
 
 function freshItems() {
   return MONTHLY_EQUIPMENT_ITEMS.map((item) => ({ id: item.id, checked: false }));
 }
 
-export function MonthlyEquipmentReport() {
+export function MonthlyEquipmentReport({ vesselId }: { vesselId: string }) {
   const currentMonthKey = getMonthKey();
-  const [reports, setReports] = useLocalStorage<Record<string, ReportType>>(STORAGE_KEY, {});
+  const [reports, setReports] = useLocalStorage<Record<string, ReportType>>(
+    storageKey(vesselId),
+    {},
+  );
   const [selectedMonth, setSelectedMonth] = useState(currentMonthKey);
 
   const activeReport: ReportType =

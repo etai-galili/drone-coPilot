@@ -1,3 +1,18 @@
+export interface Vessel {
+  id: string;
+  name: string;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface DocumentLink {
+  id: string;
+  title: string;
+  url: string;
+  notes?: string;
+  createdAt: string;
+}
+
 export interface VoyageEntry {
   id: string;
   date: string; // YYYY-MM-DD

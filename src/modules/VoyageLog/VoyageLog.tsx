@@ -8,7 +8,9 @@ import { generateId, useLocalStorage } from "../../lib/storage";
 import { formatDateHe, todayISO } from "../../lib/dateUtils";
 import type { VoyageEntry } from "../../types";
 
-const STORAGE_KEY = "vessel-mng:voyage-log";
+function storageKey(vesselId: string) {
+  return `vessel-mng:${vesselId}:voyage-log`;
+}
 
 function emptyDraft(): Omit<VoyageEntry, "id" | "createdAt"> {
   return {
@@ -24,8 +26,8 @@ function emptyDraft(): Omit<VoyageEntry, "id" | "createdAt"> {
   };
 }
 
-export function VoyageLog() {
-  const [entries, setEntries] = useLocalStorage<VoyageEntry[]>(STORAGE_KEY, []);
+export function VoyageLog({ vesselId }: { vesselId: string }) {
+  const [entries, setEntries] = useLocalStorage<VoyageEntry[]>(storageKey(vesselId), []);
   const [draft, setDraft] = useState(emptyDraft());
   const [crewInput, setCrewInput] = useState("");
   const [fromFilter, setFromFilter] = useState("");

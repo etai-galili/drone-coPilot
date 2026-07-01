@@ -6,16 +6,18 @@ import { formatDateHe, getCurrentPeriod, getPeriodRange } from "../../lib/dateUt
 import { BIWEEKLY_MAINTENANCE_ITEMS } from "../../data/checklistItems";
 import type { BiweeklyChecklistReport } from "../../types";
 
-const STORAGE_KEY = "vessel-mng:biweekly-checklist";
+function storageKey(vesselId: string) {
+  return `vessel-mng:${vesselId}:biweekly-checklist`;
+}
 
 function freshItems() {
   return BIWEEKLY_MAINTENANCE_ITEMS.map((item) => ({ id: item.id, checked: false }));
 }
 
-export function BiweeklyChecklist() {
+export function BiweeklyChecklist({ vesselId }: { vesselId: string }) {
   const period = getCurrentPeriod();
   const [reports, setReports] = useLocalStorage<Record<string, BiweeklyChecklistReport>>(
-    STORAGE_KEY,
+    storageKey(vesselId),
     {},
   );
 
