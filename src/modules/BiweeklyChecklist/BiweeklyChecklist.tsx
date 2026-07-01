@@ -6,7 +6,7 @@ import { formatDateHe, getCurrentPeriod, getPeriodRange } from "../../lib/dateUt
 import { BIWEEKLY_MAINTENANCE_ITEMS } from "../../data/checklistItems";
 import type { BiweeklyChecklistReport } from "../../types";
 
-const STORAGE_KEY = "vesselcrm:biweekly-checklist";
+const STORAGE_KEY = "vessel-mng:biweekly-checklist";
 
 function freshItems() {
   return BIWEEKLY_MAINTENANCE_ITEMS.map((item) => ({ id: item.id, checked: false }));

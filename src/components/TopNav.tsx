@@ -23,7 +23,7 @@ export function TopNav({
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
         <div className="flex items-center gap-2 text-lg font-extrabold tracking-tight">
           <Anchor className="size-6 text-cyan-300" />
-          <span>VesselCRM</span>
+          <span>vessel-MNG</span>
         </div>
 
         <nav className="hidden items-center gap-1 md:flex">

@@ -8,7 +8,7 @@ import { generateId, useLocalStorage } from "../../lib/storage";
 import { formatDateHe, todayISO } from "../../lib/dateUtils";
 import type { VoyageEntry } from "../../types";
 
-const STORAGE_KEY = "vesselcrm:voyage-log";
+const STORAGE_KEY = "vessel-mng:voyage-log";
 
 function emptyDraft(): Omit<VoyageEntry, "id" | "createdAt"> {
   return {

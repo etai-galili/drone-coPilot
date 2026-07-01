@@ -6,7 +6,7 @@ import { getMonthKey, getMonthLabelHe } from "../../lib/dateUtils";
 import { MONTHLY_EQUIPMENT_ITEMS } from "../../data/checklistItems";
 import type { MonthlyEquipmentReport as ReportType } from "../../types";
 
-const STORAGE_KEY = "vesselcrm:monthly-equipment";
+const STORAGE_KEY = "vessel-mng:monthly-equipment";
 
 function freshItems() {
   return MONTHLY_EQUIPMENT_ITEMS.map((item) => ({ id: item.id, checked: false }));

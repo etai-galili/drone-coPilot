@@ -4,7 +4,7 @@ import type { StatusHandoverEntry } from "../../types";
 export function PrintableHandover({ entry }: { entry: StatusHandoverEntry }) {
   return (
     <div dir="rtl" className="mx-auto max-w-3xl p-10 text-slate-900">
-      <h1 className="mb-1 text-2xl font-extrabold">VesselCRM — טופס העברת סטטוס</h1>
+      <h1 className="mb-1 text-2xl font-extrabold">vessel-MNG — טופס העברת סטטוס</h1>
       <p className="mb-6 text-sm text-slate-500">תאריך: {formatDateHe(entry.date)}</p>
 
       <div className="mb-6 grid grid-cols-2 gap-4 border-b border-slate-300 pb-4">

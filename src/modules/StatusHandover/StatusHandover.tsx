@@ -8,7 +8,7 @@ import { formatDateHe, getPeriodKey, todayISO } from "../../lib/dateUtils";
 import type { StatusHandoverEntry } from "../../types";
 import { PrintableHandover } from "./PrintableHandover";
 
-const STORAGE_KEY = "vesselcrm:status-handover";
+const STORAGE_KEY = "vessel-mng:status-handover";
 
 function emptyDraft(): Omit<StatusHandoverEntry, "id" | "createdAt" | "periodKey"> {
   return {
