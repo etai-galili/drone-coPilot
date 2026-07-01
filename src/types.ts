@@ -20,6 +20,15 @@ export interface MonthlyOverviewEntry {
   updatedAt: string;
 }
 
+export interface CustomNavItem {
+  id: string;
+  kind: "link" | "page";
+  label: string;
+  url: string; // used when kind === "link"
+  content: string; // used when kind === "page"
+  createdAt: string;
+}
+
 export interface StatusHandoverEntry {
   id: string;
   periodKey: string;
